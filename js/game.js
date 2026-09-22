@@ -13,6 +13,7 @@ const BALL_R = 22, D = BALL_R * 2;
 const TAU = Math.PI * 2;
 const SHOT_SPEED = 950;
 const SHOT_CD = 0.14;
+const COMBO_WINDOW = 3.5;
 
 const TYPES = [
   { key:'O', name:'蓝巨星', color:'#5b7bff', dark:'#243190', light:'#b8c8ff', glow:'#7d95ff' },
@@ -23,7 +24,27 @@ const TYPES = [
   { key:'K', name:'橙矮星', color:'#ff9e3d', dark:'#b25410', light:'#ffdcae', glow:'#ff8c2e' },
   { key:'M', name:'红矮星', color:'#ff5346', dark:'#a32318', light:'#ffb3a8', glow:'#ff4438' },
 ];
-const TYPE_ORDER = [0, 4, 5, 6, 2, 3, 1];
+const UI_FONT = '"Trebuchet MS","PingFang SC","Microsoft YaHei",sans-serif';
+
+const LEVEL_PALETTES = [
+  [0, 2, 4, 6],
+  [1, 2, 4, 5, 6],
+  [0, 1, 2, 4, 6],
+  [0, 2, 3, 4, 6],
+  [0, 1, 2, 4, 5, 6],
+  [0, 1, 2, 3, 4, 6],
+  [0, 1, 2, 3, 4, 5, 6],
+];
+
+const STAR_INFO = [
+  { temp: '≥ 30,000 K', example: '参宿一 · Alnitak', hr: [0.04, 0.06], desc: '最炽热也最稀有的蓝巨星，质量可达太阳数十倍，以电离氦谱线为特征，寿命仅有数百万年。' },
+  { temp: '10,000 – 30,000 K', example: '角宿一 · Spica', hr: [0.16, 0.15], desc: '蓝白色的B型星，中性氦谱线强烈，猎户座腰带三星多属此类，是夜空中耀眼的亮星。' },
+  { temp: '7,500 – 10,000 K', example: '织女星 · Vega', hr: [0.30, 0.28], desc: '洁白的A级星，氢的巴尔末谱线最为强烈，自转迅速，织女星是其原型。' },
+  { temp: '6,000 – 7,500 K', example: '南河三 · Procyon', hr: [0.43, 0.42], desc: '黄白色的F型星，比太阳稍热稍亮，金属谱线增强，是搜寻类地行星的热门目标。' },
+  { temp: '5,200 – 6,000 K', example: '太阳 · Sun (G2V)', hr: [0.56, 0.56], desc: '黄矮星，我们的太阳正属此类，氢燃烧平稳温和，寿命约一百亿年。' },
+  { temp: '3,700 – 5,200 K', example: '大角星 · Arcturus', hr: [0.68, 0.70], desc: '橙色恒星，金属谱线明显，寿命可达数百亿年，被认为是宜居世界的优良宿主。' },
+  { temp: '2,400 – 3,700 K', example: '比邻星 · Proxima', hr: [0.82, 0.88], desc: '数量最多的红矮星，占恒星总数七成以上，光度微弱而寿命极长，以耀斑活动著称。' },
+];
 
 const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
 const hexA = (hex, a) => {
@@ -108,6 +129,10 @@ const SFX = {
     for (let i = 0; i < Math.min(4, n); i++)
       this.tone(base * Math.pow(2, steps[i] / 12), 0.14, 'triangle', 0.20, 0.03 + i * 0.06);
     if (n > 4) this.tone(base * 2, 0.20, 'sine', 0.15, 0.30);
+  },
+  autoClear() {
+    this.tone(180, 0.30, 'sine', 0.25, 0, 70);
+    this.tone(95, 0.40, 'triangle', 0.20, 0.05, 45);
   },
   pop()   { this.tone(600, 0.09, 'sine', 0.12, 0, 140); },
   alarm() { this.tone(200, 0.35, 'sawtooth', 0.14, 0, 90); },
@@ -219,6 +244,86 @@ function drawBall(x, y, ti, scale = 1, alpha = 1) {
   ctx.drawImage(sprites[ti], x - s / 2, y - s / 2, s, s);
   ctx.restore();
 }
+function renderStarCard(id) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const c = cv.getContext('2d');
+  const s = cv.width;
+  c.clearRect(0, 0, s, s);
+  const g = c.createRadialGradient(s / 2, s / 2, s * 0.05, s / 2, s / 2, s * 0.52);
+  g.addColorStop(0, hexA(TYPES[featuredType].glow, 0.45));
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g;
+  c.fillRect(0, 0, s, s);
+  c.drawImage(sprites[featuredType], s * 0.13, s * 0.13, s * 0.74, s * 0.74);
+}
+function drawHR(id, hl) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const c = cv.getContext('2d');
+  const w = cv.width, h = cv.height;
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = 'rgba(8,10,26,.85)';
+  roundRect(c, 0, 0, w, h, 16); c.fill();
+  c.strokeStyle = 'rgba(140,160,255,.25)'; c.lineWidth = 2;
+  roundRect(c, 0, 0, w, h, 16); c.stroke();
+  const padL = 76, padR = 34, padT = 40, padB = 62;
+  const iw = w - padL - padR, ih = h - padT - padB;
+  const P = i => [padL + STAR_INFO[i].hr[0] * iw, padT + STAR_INFO[i].hr[1] * ih];
+  c.strokeStyle = 'rgba(150,170,255,.4)'; c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(padL, padT); c.lineTo(padL, padT + ih); c.lineTo(padL + iw, padT + ih);
+  c.stroke();
+  c.fillStyle = '#93a2d8';
+  c.font = '19px ' + UI_FONT;
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText('表面温度', padL + iw / 2, h - 18);
+  c.save();
+  c.translate(26, padT + ih / 2); c.rotate(-Math.PI / 2);
+  c.fillText('光度', 0, 0);
+  c.restore();
+  c.font = '16px ' + UI_FONT;
+  c.textAlign = 'left';
+  c.fillText('高温', padL + 6, padT + ih + 20);
+  c.textAlign = 'right';
+  c.fillText('低温', padL + iw - 6, padT + ih + 20);
+  c.fillText('亮', padL - 12, padT + 10);
+  c.fillText('暗', padL - 12, padT + ih - 10);
+  c.strokeStyle = 'rgba(160,180,255,.3)'; c.lineWidth = 12; c.lineCap = 'round';
+  c.beginPath();
+  STAR_INFO.forEach((_, i) => { const [x, y] = P(i); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.stroke();
+  c.strokeStyle = 'rgba(205,220,255,.5)'; c.lineWidth = 3;
+  c.beginPath();
+  STAR_INFO.forEach((_, i) => { const [x, y] = P(i); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.stroke();
+  c.fillStyle = 'rgba(150,165,215,.55)';
+  c.font = '17px ' + UI_FONT;
+  c.textAlign = 'center';
+  c.fillText('超巨星', padL + iw * 0.60, padT + 16);
+  c.fillText('巨星', padL + iw * 0.82, padT + ih * 0.30);
+  c.fillText('白矮星', padL + iw * 0.15, padT + ih * 0.84);
+  c.fillText('主序带', padL + iw * 0.34, padT + ih * 0.58);
+  TYPES.forEach((T, i) => {
+    const [x, y] = P(i);
+    if (i === hl) {
+      c.fillStyle = hexA(T.glow, 0.35);
+      c.beginPath(); c.arc(x, y, 16, 0, TAU); c.fill();
+    }
+    c.fillStyle = T.color;
+    c.beginPath(); c.arc(x, y, i === hl ? 8 : 5.5, 0, TAU); c.fill();
+    c.fillStyle = '#dfe6ff';
+    c.font = 'bold 15px ' + UI_FONT;
+    c.fillText(T.key, x, y - 15);
+  });
+  if (hl >= 0) {
+    const [x, y] = P(hl);
+    c.fillStyle = '#ffd84d';
+    c.font = 'bold 17px ' + UI_FONT;
+    c.textAlign = 'center';
+    c.fillText('▼ 本关目标', x, Math.min(y + 26, padT + ih - 8));
+  }
+}
 
 /* ================= 背景(预渲染) ================= */
 let bgCv = null;
@@ -290,35 +395,67 @@ let state = 'title';
 let level = 1, score = 0, levelStartScore = 0;
 let chain = [], shots = [], particles = [], floaters = [];
 let total = 0, remaining = 0, pushSpeed = 25, rollbackSpeed = 80;
-let activeTypes = TYPE_ORDER.slice(0, 4);
-let spawnTimer = 0, lastSpawn = [];
+let activeTypes = LEVEL_PALETTES[0].slice();
+let spawnTimer = 0;
+let featuredType = 0, quota = 12, collected = 0;
 let currentType = 0, nextType = 0;
 let aimAngle = -Math.PI / 2;
 let cooldown = 0, muzzleFlash = 0;
 let shake = 0, shakeT = 0;
-let comboLevel = 0, comboTimer = 0;
-let clearT = 0, suckT = 0, introT = 0;
+let comboLevel = 0, comboTimer = 0, maxCombo = 0;
+let suckT = 0, sweepT = 0, sweepDone = 0;
 let time = 0, lastBeat = 0, dangerLevel = 0;
 
 function levelConf(n) {
-  const colors = Math.min(7, 3 + n);
-  activeTypes = TYPE_ORDER.slice(0, colors);
+  if (n <= 7) {
+    return {
+      palette: LEVEL_PALETTES[n - 1],
+      featured: n - 1,
+      quota: 10 + n,
+      speed: Math.min(50, 22 + n * 3.2),
+      rollback: Math.min(130, 78 + n * 5),
+      prefill: Math.min(22, 13 + n * 2),
+      total: 9999,
+    };
+  }
+  const k = n - 7;
   return {
-    total: Math.min(85, 34 + n * 7),
-    speed: Math.min(58, 21 + n * 4.5),
-    prefill: Math.min(22, 13 + n * 2),
-    rollback: Math.min(130, 75 + n * 6),
-    colors,
+    palette: [0, 1, 2, 3, 4, 5, 6],
+    featured: (k - 1) % 7,
+    quota: 18 + k * 2,
+    speed: Math.min(64, 46 + k * 2),
+    rollback: 130,
+    prefill: 22,
+    total: 9999,
   };
 }
+function randOf(arr) { return arr[(Math.random() * arr.length) | 0]; }
+function tailRunInChain() {
+  const m = chain.length;
+  if (!m) return 0;
+  const t = chain[m - 1].type;
+  let r = 1;
+  for (let k = m - 2; k >= 0; k--) {
+    if (chain[k].type !== t || chain[k].dist - chain[k + 1].dist > D + 3) break;
+    r++;
+  }
+  return r;
+}
 function pickType() {
-  let pool = activeTypes.slice();
-  const n = lastSpawn.length;
-  if (n >= 2 && lastSpawn[n - 1] === lastSpawn[n - 2])
-    pool = pool.filter(t => t !== lastSpawn[n - 1]);
-  const t = pool[(Math.random() * pool.length) | 0];
-  lastSpawn.push(t);
-  if (lastSpawn.length > 2) lastSpawn.shift();
+  let t;
+  const tail = chain.length ? chain[chain.length - 1] : null;
+  const tailRun = tail ? tailRunInChain() : 0;
+  if (tailRun >= 3) {
+    if (Math.random() < 0.3) {
+      t = tail.type;
+    } else {
+      t = randOf(activeTypes.filter(x => x !== tail.type));
+    }
+  } else if (Math.random() < 0.26) {
+    t = featuredType;
+  } else {
+    t = randOf(activeTypes);
+  }
   return t;
 }
 function startLevel(n) {
@@ -327,10 +464,14 @@ function startLevel(n) {
   remaining = c.total;
   pushSpeed = c.speed;
   rollbackSpeed = c.rollback;
+  activeTypes = c.palette;
+  featuredType = c.featured;
+  quota = c.quota;
+  collected = 0;
   chain = []; shots = []; particles = []; floaters = [];
-  lastSpawn = []; spawnTimer = 0.5;
-  comboLevel = 0; comboTimer = 0; clearT = 0; suckT = 0;
-  introT = 1.4; dangerLevel = 0;
+  spawnTimer = 0.5;
+  comboLevel = 0; comboTimer = 0; maxCombo = 0; suckT = 0;
+  sweepT = 0; sweepDone = 0; dangerLevel = 0;
   levelStartScore = score;
   currentType = pickType();
   nextType = pickType();
@@ -338,7 +479,9 @@ function startLevel(n) {
     chain.push({ type: pickType(), dist: i * D });
     remaining--;
   }
-  hideOverlay();
+  showOverlay(introHTML());
+  renderStarCard('introIcon');
+  drawHR('hrIntro', featuredType);
   state = 'intro';
   updateHUD(true);
 }
@@ -360,37 +503,66 @@ function findRun(i) {
   while (b < chain.length - 1 && chain[b + 1].type === t && chain[b].dist - chain[b + 1].dist <= D + 3) b++;
   return [a, b];
 }
-function removeRun(a, b, fromMerge) {
-  if (fromMerge) comboLevel++; else comboLevel = 0;
-  const mult = 1 + comboLevel;
+function autoClearScan() {
+  const n = chain.length;
+  let i = 0;
+  while (i < n) {
+    const t = chain[i].type;
+    let j = i;
+    while (j + 1 < n && chain[j + 1].type === t && chain[j].dist - chain[j + 1].dist <= D + 3) j++;
+    if (j - i + 1 >= 4) { removeRun(i, j, 'auto'); return; }
+    i = j + 1;
+  }
+}
+function runLabel(n) {
+  if (n === 4) return '四连爆!';
+  if (n === 5) return '五连爆!';
+  return '星系湮灭!';
+}
+function removeRun(a, b, cause) {
   const n = b - a + 1;
+  if (comboTimer > 0) comboLevel = Math.min(8, comboLevel + 1); else comboLevel = 0;
+  comboTimer = COMBO_WINDOW;
+  maxCombo = Math.max(maxCombo, comboLevel + 1);
+  const mult = 1 + comboLevel;
+  let base = 10 * n;
+  if (n >= 4) base += (n - 3) * 25;
+  if (cause === 'auto') base = Math.round(base * 1.5);
+  const streakBonus = comboLevel >= 2 ? 60 * comboLevel : 0;
+  const pts = base * mult + streakBonus;
+  score += pts;
   const removed = chain.splice(a, n);
   let cx = 0, cy = 0;
   for (const ball of removed) {
+    if (ball.type === featuredType) collected++;
     const p = posAt(ball.dist);
     cx += p.x; cy += p.y;
     burst(p.x, p.y, ball.type);
   }
   cx /= n; cy /= n;
-  const pts = 10 * n * mult;
-  score += pts;
   const T = TYPES[removed[0].type];
   floatText(cx, cy - 26, '+' + pts, T.light, 17);
-  if (mult > 1) {
-    floatText(cx, cy - 54, '连锁 ×' + mult + ' !', '#ffd84d', 24);
-    comboFlash('连锁 ×' + mult);
+  if (cause === 'auto') {
+    floatText(cx, cy - 54, '自动湮灭!', '#ffd84d', 24);
+    ringFx(cx, cy, '#ffffff');
+    SFX.autoClear();
+  } else if (n >= 4) {
+    floatText(cx, cy - 54, runLabel(n), '#ffd84d', 23);
+  } else if (mult > 1) {
+    floatText(cx, cy - 54, '连击 ×' + mult, '#ff9e3d', 20);
   }
+  if (mult > 1) comboFlash((mult >= 4 ? '超新星' : '') + '连击 ×' + mult, mult);
   ringFx(cx, cy, T.glow);
-  if (n >= 4 || mult > 1) { shake = Math.min(9, 3 + n); shakeT = 0.28; }
+  if (n >= 4 || mult > 1 || cause === 'auto') { shake = Math.min(9, 3 + n); shakeT = 0.28; }
   SFX.match(n, comboLevel);
-  comboTimer = 4;
+  if (state === 'playing' && collected >= quota) startSweep();
 }
 function checkJunction(idx) {
   if (idx <= 0 || idx >= chain.length) return;
-  if (chain[idx - 1].type !== chain[idx].type) { comboLevel = 0; return; }
+  if (chain[idx - 1].type !== chain[idx].type) return;
   const run = findRun(idx - 1);
-  if (run[1] - run[0] + 1 >= 3) removeRun(run[0], run[1], true);
-  else { comboLevel = 0; SFX.clack(); }
+  if (run[1] - run[0] + 1 >= 3) removeRun(run[0], run[1], 'merge');
+  else SFX.clack();
 }
 function insertShot(s, i) {
   const ball = chain[i];
@@ -404,8 +576,7 @@ function insertShot(s, i) {
   SFX.insert();
   particles.push({ x: s.x, y: s.y, vx: 0, vy: 0, life: 0.25, max: 0.25, size: 8, color: TYPES[s.type].glow, kind: 'glow' });
   const run = findRun(idx);
-  if (run[1] - run[0] + 1 >= 3) removeRun(run[0], run[1], false);
-  else comboLevel = 0;
+  if (run[1] - run[0] + 1 >= 3) removeRun(run[0], run[1], 'shot');
 }
 function updateChain(dt) {
   const n = chain.length;
@@ -542,6 +713,14 @@ function swapBalls() {
   const t = currentType; currentType = nextType; nextType = t;
   SFX.swap();
 }
+function startSweep() {
+  state = 'clearing';
+  shots = [];
+  sweepT = 0.12;
+  sweepDone = 0.6;
+  comboFlash('收集完成!', 3);
+  SFX.tone(880, 0.4, 'triangle', 0.2, 0, 1320);
+}
 
 /* ================= 主循环 ================= */
 function update(dt) {
@@ -550,15 +729,11 @@ function update(dt) {
   if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
   updateParticles(dt);
   updateFloaters(dt);
-  if (state === 'intro') {
-    introT -= dt;
-    if (introT <= 0) state = 'playing';
-    return;
-  }
   if (state === 'playing') {
     cooldown = Math.max(0, cooldown - dt);
     spawnUpdate(dt);
     updateChain(dt);
+    autoClearScan();
     updateShots(dt);
     const front = chain[0];
     dangerLevel = front ? clamp((front.dist - (totalLen - 340)) / 340, 0, 1) : 0;
@@ -568,13 +743,31 @@ function update(dt) {
       SFX.tone(58, 0.22, 'sine', 0.18, 0.12);
     }
     if (front && front.dist >= totalLen - 24) { state = 'sucking'; suckT = 0; SFX.alarm(); }
-    if (remaining === 0 && chain.length === 0) {
-      clearT += dt;
-      if (clearT > 0.9) { state = 'levelclear'; SFX.levelClear(); showOverlay(clearHTML()); }
-    } else clearT = 0;
     if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) comboLevel = 0; }
   } else if (state === 'sucking') {
     updateSuck(dt);
+  } else if (state === 'clearing') {
+    sweepT -= dt;
+    if (sweepT <= 0 && chain.length) {
+      const b = chain.pop();
+      const p = posAt(b.dist);
+      burst(p.x, p.y, b.type);
+      score += 15;
+      if (b.type === featuredType) collected++;
+      SFX.pop();
+      sweepT = 0.045;
+    }
+    if (!chain.length) {
+      sweepDone -= dt;
+      if (sweepDone <= 0) {
+        state = 'levelclear';
+        score += levelBonus();
+        SFX.levelClear();
+        showOverlay(clearHTML());
+        renderStarCard('clearIcon');
+        drawHR('hrClear', featuredType);
+      }
+    } else sweepDone = 0.6;
   }
 }
 let lastTs = 0;
@@ -755,23 +948,6 @@ function drawDanger() {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 }
-function drawIntro() {
-  if (state !== 'intro') return;
-  const a = Math.min(1, (1.4 - introT) / 0.3) * Math.min(1, introT / 0.3);
-  if (a <= 0) return;
-  ctx.save();
-  ctx.globalAlpha = a;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#ffe9a8';
-  ctx.font = 'bold 56px "Trebuchet MS","PingFang SC",sans-serif';
-  ctx.shadowColor = 'rgba(255,200,80,.6)'; ctx.shadowBlur = 24;
-  ctx.fillText('第 ' + level + ' 关', W / 2, H / 2 - 12);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#aab8e8';
-  ctx.font = '20px "Trebuchet MS","PingFang SC",sans-serif';
-  ctx.fillText('光谱型  ' + activeTypes.map(t => TYPES[t].key).join(' · '), W / 2, H / 2 + 34);
-  ctx.restore();
-}
 function render() {
   ctx.setTransform(SS, 0, 0, SS, 0, 0);
   ctx.clearRect(0, 0, W, H);
@@ -791,7 +967,6 @@ function render() {
   drawFloaters();
   ctx.restore();
   drawDanger();
-  drawIntro();
 }
 
 /* ================= HUD / 覆盖层 ================= */
@@ -806,16 +981,16 @@ const hud = { s: -1, l: -1, lbl: '' };
 function updateHUD(force) {
   if (force || hud.s !== score) { elScore.textContent = score.toLocaleString('zh-CN'); hud.s = score; }
   if (force || hud.l !== level) { elLevel.textContent = '第 ' + level + ' 关'; hud.l = level; }
-  const left = remaining + chain.length;
-  const pct = total > 0 ? Math.max(0, Math.min(1, 1 - left / total)) : 0;
+  const pct = quota > 0 ? Math.max(0, Math.min(1, collected / quota)) : 0;
   elFill.style.width = (pct * 100).toFixed(1) + '%';
-  const lbl = (state === 'playing' || state === 'sucking' || state === 'intro')
-    ? (left > 0 ? '剩余 ' + left + ' 颗' : '轨道清空!')
+  const lbl = (state === 'playing' || state === 'sucking' || state === 'intro' || state === 'clearing')
+    ? '目标 ' + TYPES[featuredType].key + ' 型恒星 ' + Math.min(collected, quota) + '/' + quota
     : '';
   if (hud.lbl !== lbl) { elLabel.textContent = lbl; hud.lbl = lbl; }
 }
-function comboFlash(txt) {
+function comboFlash(txt, mult) {
   elCombo.textContent = txt;
+  elCombo.style.color = mult >= 4 ? '#ff6b52' : (mult >= 3 ? '#ffd84d' : '#ffe9a8');
   elCombo.classList.remove('show');
   void elCombo.offsetWidth;
   elCombo.classList.add('show');
@@ -829,20 +1004,46 @@ function titleHTML() {
   ).join('');
   return `<div class="card">
     <h1>星链祖玛</h1><p class="sub">STELLAR ZUMA</p>
-    <p class="desc">恒星沿螺旋轨道涌向黑洞。发射恒星球，三颗同类相连即会湮灭。<br>配色取自恒星光谱分类 <b>O · B · A · F · G · K · M</b>。</p>
+    <p class="desc">第一部分共七关，每关收集一种光谱型恒星，集齐 <b>O · B · A · F · G · K · M</b>！<br>三颗同类相连即湮灭；<b>四连自动湮灭</b>；连续消除享<b>连击加成</b>。</p>
     <div class="legend">${legend}</div>
     <p class="controls">鼠标瞄准 · 点击发射 · <b>空格 / 右键</b> 换球 · <b>P</b> 暂停 · <b>M</b> 音效</p>
     <button class="primary" data-action="start">开始游戏</button>
   </div>`;
 }
-function clearHTML() {
-  return `<div class="card">
-    <h1 class="good">第 ${level} 关 完成!</h1>
-    <p class="desc">当前得分 <b>${score.toLocaleString('zh-CN')}</b></p>
-    <p class="tip">下一关：光谱型增至 ${Math.min(7, 3 + level + 1)} 种，链速提升</p>
-    <button class="primary" data-action="next">进入第 ${level + 1} 关</button>
+function introHTML() {
+  const S = STAR_INFO[featuredType];
+  const T = TYPES[featuredType];
+  return `<div class="card intro">
+    <div class="intro-head">
+      <canvas id="introIcon" width="96" height="96"></canvas>
+      <div class="intro-title">
+        <h1>第 ${level} 关 · 收集 ${T.key} 型恒星</h1>
+        <p class="sub">${T.name} · ${S.temp}</p>
+      </div>
+    </div>
+    <p class="desc">${S.desc}</p>
+    <p class="tip">代表恒星：${S.example} · 目标 ${quota} 颗 · 4 颗同类相连会自动湮灭</p>
+    <canvas id="hrIntro" width="640" height="300"></canvas>
+    <button class="primary" data-action="go">出发</button>
   </div>`;
 }
+function clearHTML() {
+  const S = STAR_INFO[featuredType];
+  const T = TYPES[featuredType];
+  return `<div class="card intro">
+    <div class="intro-head">
+      <canvas id="clearIcon" width="96" height="96"></canvas>
+      <div class="intro-title">
+        <h1 class="good">${T.key} 型恒星 · 收集完成!</h1>
+        <p class="sub">${T.name} · ${S.temp}</p>
+      </div>
+    </div>
+    <p class="desc">关卡奖励 <b>+${levelBonus()}</b> · 当前得分 <b>${score.toLocaleString('zh-CN')}</b></p>
+    <canvas id="hrClear" width="640" height="300"></canvas>
+    <button class="primary" data-action="next">${level < 7 ? '收集下一类恒星' : '进入无尽挑战'}</button>
+  </div>`;
+}
+function levelBonus() { return 500 + level * 100; }
 function gameoverHTML() {
   return `<div class="card">
     <h1 class="bad">黑洞吞噬了星链…</h1>
@@ -864,6 +1065,7 @@ overlay.addEventListener('click', e => {
   SFX.ensure(); SFX.click();
   const act = b.dataset.action;
   if (act === 'start' || act === 'restart') { score = 0; level = 1; startLevel(1); }
+  else if (act === 'go') { hideOverlay(); state = 'playing'; }
   else if (act === 'next') { level++; startLevel(level); }
   else if (act === 'retry') { score = levelStartScore; startLevel(level); }
   else if (act === 'resume') { hideOverlay(); state = 'playing'; }
@@ -913,5 +1115,26 @@ makeBackground();
 setupTitle();
 updateHUD(true);
 requestAnimationFrame(frame);
+
+if (typeof window !== 'undefined') {
+  window.__suma = {
+    state: () => state, score: () => score, level: () => level,
+    featuredType: () => featuredType, quota: () => quota, collected: () => collected,
+    chainLen: () => chain.length, comboLevel: () => comboLevel, maxCombo: () => maxCombo,
+    frontDist: () => chain.length ? Math.round(chain[0].dist) : -1,
+    tailDist: () => chain.length ? Math.round(chain[chain.length - 1].dist) : -1,
+    spawned: () => total - remaining,
+    pushSpeed: () => pushSpeed,
+    segCount: () => {
+      let c = 1;
+      for (let k = 1; k < chain.length; k++) if (chain[k - 1].dist - chain[k].dist > D + 2.5) c++;
+      return c;
+    },
+    startLevel,
+    aimAt: (x, y) => { aimAngle = Math.atan2(y - CY, x - CX); },
+    playerShoot: () => shoot(),
+    playerGo: () => { if (state === 'intro') { hideOverlay(); state = 'playing'; } },
+  };
+}
 
 })();

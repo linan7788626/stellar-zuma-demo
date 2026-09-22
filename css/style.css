@@ -264,3 +264,45 @@ html, body {
 .card button.ghost:hover {
   background: rgba(120, 140, 255, .12);
 }
+
+/* ---------- 关卡信息卡 / 赫罗图 ---------- */
+.card.intro { max-width: 560px; padding: 28px 40px 30px; }
+
+.intro-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 6px;
+}
+
+.intro-head canvas {
+  width: 88px;
+  height: 88px;
+  flex: none;
+  filter: drop-shadow(0 0 14px rgba(130, 160, 255, .45));
+}
+
+.intro-title { text-align: left; }
+
+.intro-title h1 {
+  font-size: 30px;
+  letter-spacing: .02em;
+}
+
+.intro-title .sub {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #9fb0e8;
+}
+
+.card.intro canvas:not(.hrCv) { margin: 0; }
+
+#hrIntro, #hrClear {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  margin: 10px auto 4px;
+  border-radius: 12px;
+}
