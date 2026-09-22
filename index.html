@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星链祖玛 · Stellar Zuma</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="game" width="1280" height="800"></canvas>
+    <div id="hud">
+      <div class="panel hud-left">
+        <div class="stat">
+          <span class="lbl">SCORE · 得分</span>
+          <span id="score" class="val">0</span>
+        </div>
+        <div id="level" class="pill">第 1 关</div>
+      </div>
+      <div class="panel hud-right">
+        <div class="lbl">星链进度</div>
+        <div class="bar"><div id="prog-fill"></div></div>
+        <div id="prog-label" class="mini"></div>
+      </div>
+      <div id="combo"></div>
+    </div>
+    <div id="overlay" class="hidden"></div>
+  </div>
+</div>
+<script src="js/game.js"></script>
+</body>
+</html>
