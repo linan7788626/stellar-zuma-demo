@@ -778,7 +778,8 @@ function startLevel(n) {
   drawHR('hrIntro', featuredType, curLum, gamePart === 2);
   state = 'intro';
   updateHUD(true);
-  drawProgressHR('hrMini', 230, 158);
+  drawProgressHR('hrMini', 400, 274);
+  updateStarInfo();
 }
 function setupTitle() {
   levelConf(1);
@@ -788,7 +789,9 @@ function setupTitle() {
   currentType = 0; nextType = 4;
   showOverlay(titleHTML());
   drawProgressHR('hrTitle', 460, 250);
-  drawProgressHR('hrMini', 230, 158);
+  drawProgressHR('hrMini', 400, 274);
+  const si = document.getElementById('starInfo');
+  if (si) si.innerHTML = '';
   state = 'title';
 }
 
@@ -1215,7 +1218,7 @@ function update(dt) {
         if (gamePart === 1) renderStarCard('clearIcon'); else renderLumCard('clearIcon');
         drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
         track = { pts: trackForClear(), t: 0, dur: 2.6 };
-        drawProgressHR('hrMini', 230, 158);
+        drawProgressHR('hrMini', 400, 274);
       }
     } else sweepDone = 0.6;
   }
@@ -1487,6 +1490,24 @@ function updateHUD(force) {
     ? '目标 ' + goal + ' ' + Math.min(collected, quota) + '/' + quota
     : '';
   if (hud.lbl !== lbl) { elLabel.textContent = lbl; hud.lbl = lbl; }
+}
+function updateStarInfo() {
+  const el = document.getElementById('starInfo');
+  if (!el) return;
+  if (gamePart === 1) {
+    const T = TYPES[featuredType], S = STAR_INFO[featuredType];
+    el.innerHTML = `<div class="si-head"><span class="si-badge" style="background:${T.color};box-shadow:0 0 14px ${T.glow}">${T.key}</span>
+      <div><div class="si-name">${T.name}</div><div class="si-sub">${S.temp}</div></div></div>
+      <p class="si-desc">${S.desc}</p>
+      <p class="si-example">代表恒星:${S.example}</p>`;
+  } else {
+    const L = LUM_CLASSES[curLum];
+    el.innerHTML = `<div class="si-head"><span class="si-badge crown">${L.yerkes}</span>
+      <div><div class="si-name">${L.name}</div><div class="si-sub">光度类 ${L.yerkes} · 冠环 ${TYPES[L.color].key} 型球</div></div></div>
+      <p class="si-desc">${L.desc}</p>
+      <p class="si-example">代表恒星:${L.example}<br>${L.radius}</p>
+      <p class="si-skill">技能 ${L.effectName}:${L.effectDesc}</p>`;
+  }
 }
 function comboFlash(txt, mult) {
   elCombo.textContent = txt;
