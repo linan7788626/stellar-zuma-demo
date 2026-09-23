@@ -47,21 +47,47 @@ const STAR_INFO = [
 ];
 
 const LUM_CLASSES = [
-  { key: 'I', name: '超巨星', example: '参宿四 · Betelgeuse (M1-Ia)', hr: [0.70, 0.06],
-    desc: '大质量恒星演化而来的庞然巨物，光度可达太阳数万至数十万倍；死亡时以超新星爆发收场，留下中子星或黑洞。',
+  { key: '蓝超', name: '蓝超巨星', color: 0, size: 1.3, icon: 0.84, example: '参宿七 · Rigel (B8Ia)', hr: [0.13, 0.06], region: [0.13, 0.08, 0.115, 0.08], yerkes: 'Ia', radius: '半径 ≈ 太阳的几十倍',
+    desc: '最炽热明亮的超巨星，质量可达太阳数十倍，蓝白光辉源自极高表面温度；终将以超新星爆发结束一生。',
     effect: 'supernova', effectName: '超新星爆发', effectDesc: '摧毁它附近的所有恒星' },
-  { key: 'II', name: '亮巨星', example: '弧矢一 · Wezen (F8II)', hr: [0.36, 0.16],
-    desc: '位于超巨星与巨星分支之间的明亮恒星，光度约为太阳数千倍，星风极强，物质流失剧烈。',
+  { key: '红超', name: '红超巨星', color: 6, size: 1.5, icon: 0.96, example: '参宿四 · Betelgeuse (M1-Ia)', hr: [0.84, 0.04], region: [0.84, 0.09, 0.13, 0.085], yerkes: 'Ia', radius: '半径 ≈ 太阳的近千倍',
+    desc: '演化晚期的庞然巨物，半径可达太阳近千倍，表面冷却泛红；星风极强、物质抛洒剧烈，终以超新星收场。',
     effect: 'wind', effectName: '星风', effectDesc: '把整条星链吹退' },
-  { key: 'III', name: '巨星', example: '毕宿五 · Aldebaran (K5III)', hr: [0.62, 0.30],
+  { key: '红巨', name: '红巨星', color: 5, size: 1.15, icon: 0.70, example: '毕宿五 · Aldebaran (K5III)', hr: [0.68, 0.28], region: [0.70, 0.30, 0.09, 0.16], yerkes: 'III', radius: '半径 ≈ 太阳的数十倍',
     desc: '离开主序的演化恒星：核心收缩而外包层剧烈膨胀，半径达太阳数十倍，包层稀疏近乎透明。',
     effect: 'slow', effectName: '弥漫减速', effectDesc: '星链减速 6 秒' },
-  { key: 'IV', name: '亚巨星', example: '南河三 · Procyon (F5IV)', hr: [0.50, 0.47],
-    desc: '由主序迈向巨星的过渡阶段：核心氢已耗尽，核心周围的氢壳层点燃，持续释放丰沛能量。',
-    effect: 'purge', effectName: '能量释放', effectDesc: '摧毁与它同色的全部恒星' },
-  { key: 'WD', name: '白矮星', example: '天狼星B · Sirius B (DA2)', hr: [0.12, 0.88],
+  { key: '白矮', name: '白矮星', color: 2, size: 0.55, icon: 0.36, example: '天狼星B · Sirius B (DA2)', hr: [0.12, 0.88], region: [0.12, 0.82, 0.10, 0.10], yerkes: 'VII', radius: '半径 ≈ 地球(0.01 R☉)',
     desc: '类太阳恒星死亡后遗下的核心：只有地球大小却拥有接近太阳的质量，密度高达水的百万倍，由电子简并压力支撑。',
     effect: 'pierce', effectName: '简并子弹', effectDesc: '发射的星球变成穿透弹,直接摧毁沿途恒星 8 秒' },
+];
+
+const QUIZ_POOL = [
+  { keys: ['HR'], q: '赫罗图的横轴表示恒星的什么?', opts: ['表面温度', '恒星质量', '距地球远近'], exp: '横轴是表面温度(高温在左),纵轴是光度(亮度)。' },
+  { keys: ['HR'], q: '赫罗图的纵轴表示?', opts: ['光度(真实亮度)', '视星等', '恒星质量'], exp: '纵轴是光度,即恒星每秒向太空辐射的总能量。' },
+  { keys: ['HR'], q: '太阳在赫罗图上位于?', opts: ['主序带上', '红巨星分支上', '白矮星区'], exp: '太阳是标准的黄矮星,正处在主序带中部。' },
+  { keys: ['HR'], q: '主序星的能量来自?', opts: ['核心的氢聚变', '引力收缩', '化学燃烧'], exp: '主序阶段恒星把核心的氢聚变成氦,太阳已经烧了约 46 亿年。' },
+  { keys: ['HR'], q: '主序带在赫罗图上的走向是?', opts: ['左上到右下', '左下到右上', '竖直一条线'], exp: '高温高光度的蓝星在左上,低温暗弱的红星在右下。' },
+  { keys: ['HR'], q: '同样在主序上,质量越大的恒星光度?', opts: ['越大', '越小', '完全一样'], exp: '质量-光度关系:主序星的亮度随质量急剧增大。' },
+  { keys: ['HR'], q: '光度分类中罗马数字 V 代表?', opts: ['主序星(矮星)', '超巨星', '白矮星'], exp: 'Yerkes 分类:V 主序、IV 亚巨星、III 巨星、I 超巨星。' },
+  { keys: ['HR'], q: '为什么红巨星温度低却很亮?', opts: ['半径巨大,总辐射面积大', '核心还在烧氢', '离我们更近'], exp: '光度 ∝ 半径²×温度⁴,红巨星半径达太阳几十倍。' },
+  { keys: ['O'], q: '光谱型中表面温度最高的是?', opts: ['O 型', 'G 型', 'M 型'], exp: '顺序 O B A F G K M,O 型可达 30000K 以上。' },
+  { keys: ['O'], q: 'O 型星的典型颜色是?', opts: ['蓝色', '黄色', '红色'], exp: '温度越高越偏蓝,O 型星是最炽热的蓝巨星。' },
+  { keys: ['B'], q: '猎户座腰带三星大多属于哪一型?', opts: ['B 型', 'K 型', 'M 型'], exp: '参宿一等腰带三星是炽热的 B 型星。' },
+  { keys: ['A'], q: '织女星属于哪一光谱型?', opts: ['A 型', 'M 型', 'G 型'], exp: '织女星是 A 型星的典型代表,洁白发蓝白光。' },
+  { keys: ['G'], q: '太阳的光谱型符号是?', opts: ['G2V', 'M1-Ia', 'DA2'], exp: 'G2 = 表面约 5800K,V = 主序星(矮星)。' },
+  { keys: ['K'], q: '大角星是一颗?', opts: ['K 型橙色巨星', 'O 型蓝巨星', 'A 型白星'], exp: '大角星 K1III,已离开主序的橙色巨星。' },
+  { keys: ['M'], q: '宇宙中数量最多的恒星是?', opts: ['红矮星', '蓝巨星', '黄矮星'], exp: 'M 型红矮星占恒星总数七成以上,只是太暗肉眼看不见。' },
+  { keys: ['BSG'], q: '参宿七(猎户座最亮星)是一颗?', opts: ['蓝超巨星', '红矮星', '白矮星'], exp: '参宿七 B8Ia,光度约为太阳的 12 万倍。' },
+  { keys: ['BSG'], q: '大质量恒星的结局通常是?', opts: ['超新星爆发,留下中子星或黑洞', '安静地变成白矮星', '慢慢蒸发消失'], exp: '质量越大死得越壮烈,核心坍缩引发超新星爆发。' },
+  { keys: ['RSG'], q: '下列恒星中半径最大的是?', opts: ['红超巨星', '太阳', '白矮星'], exp: '红超巨星半径可达太阳近千倍,能把木星轨道都装进去。' },
+  { keys: ['RSG'], q: '参宿四(红超巨星)在天文学尺度上随时可能?', opts: ['以超新星爆发终结', '变成主序星', '冷却成行星'], exp: '未来百万年内爆发,届时亮度可媲美满月。' },
+  { keys: ['RG'], q: '红巨星膨胀的原因是?', opts: ['核心收缩点燃壳层氢,外层受热膨胀', '被行星撞击', '吞掉了另一颗星'], exp: '核心氢耗尽后收缩,壳层氢燃烧把外包层推出去。' },
+  { keys: ['WD'], q: '白矮星靠什么对抗引力坍缩?', opts: ['电子简并压', '核聚变', '磁场'], exp: '泡利不相容原理产生的电子简并压支撑着白矮星。' },
+  { keys: ['WD'], q: '天狼星 B 的体积与哪个天体相当?', opts: ['地球', '太阳', '月球'], exp: '只有地球大小,却拥有接近太阳的质量。' },
+  { keys: ['WD'], q: '一茶匙白矮星物质的质量约为?', opts: ['几吨', '几克', '几毫克'], exp: '密度约为水的百万倍,堪称"宇宙中的钻石"。' },
+  { keys: ['WD', 'HR'], q: '红矮星与白矮星最大的区别是?', opts: ['红矮星靠氢燃烧发光,白矮星是不再产能的遗骸', '白矮星更热所以更大', '红矮星不是真正的恒星'], exp: '红矮星是主序星(V),白矮星是恒星遗骸(VII),只靠余热发光。' },
+  { keys: ['HR'], q: '棕矮星为什么被称为"失败的恒星"?', opts: ['质量太小,核心没能点燃氢聚变', '它曾经爆炸过', '它是行星的卫星'], exp: '棕矮星质量介于行星与恒星之间,无法维持稳定的氢聚变。' },
+  { keys: ['HR'], q: '太阳最终的结局是?', opts: ['膨胀成红巨星,抛去外层后留下一颗白矮星', '变成一颗红矮星', '直接坍缩成黑洞'], exp: '约 50 亿年后太阳膨胀为红巨星,最终留下地球大小的白矮星。' },
 ];
 
 const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
@@ -294,7 +320,8 @@ function renderLumCard(id) {
   g.addColorStop(1, 'rgba(0,0,0,0)');
   c.fillStyle = g;
   c.fillRect(0, 0, s, s);
-  c.drawImage(sprites[4], s * 0.13, s * 0.13, s * 0.74, s * 0.74);
+  const frac = s * LUM_CLASSES[curLum].icon, off = (s - frac) / 2;
+  c.drawImage(sprites[LUM_CLASSES[curLum].color], off, off, frac, frac);
   c.strokeStyle = 'rgba(255,215,80,.9)';
   c.lineWidth = s * 0.035;
   c.beginPath(); c.arc(s / 2, s / 2, s * 0.375, 0, TAU); c.stroke();
@@ -305,7 +332,127 @@ function renderLumCard(id) {
   c.fillText(LUM_CLASSES[curLum].key, s / 2, s * 0.08);
   c.shadowBlur = 0;
 }
-function drawHR(id, hl, lumHl = -1) {
+const HRP = { l: 76, r: 34, t: 40, b: 62 };
+function hrMap(w, h, nx, ny) {
+  const iw = w - HRP.l - HRP.r, ih = h - HRP.t - HRP.b;
+  return [HRP.l + nx * iw, HRP.t + ny * ih];
+}
+function drawProgressHR(id, w, h) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  cv.width = w; cv.height = h;
+  const c = cv.getContext('2d');
+  c.fillStyle = 'rgba(8,10,26,.85)';
+  roundRect(c, 0, 0, w, h, 14); c.fill();
+  c.strokeStyle = 'rgba(140,160,255,.25)'; c.lineWidth = 2;
+  roundRect(c, 0, 0, w, h, 14); c.stroke();
+  const padL = w * 0.12, padR = w * 0.05, padT = h * 0.14, padB = h * 0.21;
+  const iw = w - padL - padR, ih = h - padT - padB;
+  const P = i => [padL + STAR_INFO[i].hr[0] * iw, padT + STAR_INFO[i].hr[1] * ih];
+  c.strokeStyle = 'rgba(150,170,255,.4)'; c.lineWidth = 1.5;
+  c.beginPath();
+  c.moveTo(padL, padT); c.lineTo(padL, padT + ih); c.lineTo(padL + iw, padT + ih);
+  c.stroke();
+  if (progress.spectral.every(v => v)) drawIsoRadius(c, padL, padT, iw, ih, 9);
+  c.strokeStyle = 'rgba(160,180,255,.22)'; c.lineWidth = 7; c.lineCap = 'round';
+  c.beginPath();
+  STAR_INFO.forEach((_, i) => { const [x, y] = P(i); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.stroke();
+  LUM_CLASSES.forEach((L, i) => {
+    const x = padL + L.region[0] * iw, y = padT + L.region[1] * ih;
+    const rx = L.region[2] * iw, ry = L.region[3] * ih;
+    c.beginPath();
+    c.ellipse(x, y, rx, ry, 0, 0, TAU);
+    if (progress.lum[i]) {
+      c.fillStyle = 'rgba(255,215,80,.20)';
+      c.fill();
+      c.strokeStyle = 'rgba(255,215,80,.8)'; c.lineWidth = 1.6;
+      c.stroke();
+    } else {
+      c.strokeStyle = 'rgba(255,215,80,.16)'; c.lineWidth = 1;
+      c.setLineDash([3, 4]);
+      c.stroke();
+      c.setLineDash([]);
+    }
+  });
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  TYPES.forEach((T, i) => {
+    const [x, y] = P(i);
+    if (progress.spectral[i]) {
+      c.fillStyle = hexA(T.glow, .35);
+      c.beginPath(); c.arc(x, y, 10, 0, TAU); c.fill();
+      c.fillStyle = T.color;
+      c.beginPath(); c.arc(x, y, 5.5, 0, TAU); c.fill();
+      c.fillStyle = '#e8eeff';
+      c.font = 'bold 11px ' + UI_FONT;
+      c.fillText(T.key, x, y - 12);
+    } else {
+      c.fillStyle = 'rgba(120,130,170,.55)';
+      c.beginPath(); c.arc(x, y, 3.5, 0, TAU); c.fill();
+    }
+  });
+  c.font = 'bold 10px ' + UI_FONT;
+  LUM_CLASSES.forEach((L, i) => {
+    if (!progress.lum[i]) return;
+    const x = padL + L.region[0] * iw;
+    const y = Math.max(padT + 7, padT + (L.region[1] - L.region[3]) * ih - 8);
+    c.fillStyle = 'rgba(255,220,120,.9)';
+    c.fillText(L.name, x, y);
+  });
+  if (state === 'intro' || state === 'playing' || state === 'clearing' || state === 'levelclear' || state === 'paused') {
+    let tx, ty, tr;
+    if (gamePart === 1) {
+      [tx, ty] = P(featuredType);
+      tr = 11;
+    } else {
+      const L = LUM_CLASSES[curLum];
+      tx = padL + L.region[0] * iw; ty = padT + L.region[1] * ih;
+      tr = Math.max(L.region[2] * iw, L.region[3] * ih) + 4;
+    }
+    c.strokeStyle = 'rgba(255,215,80,.9)';
+    c.setLineDash([5, 4]);
+    c.lineWidth = 1.6;
+    c.beginPath(); c.arc(tx, ty, tr, 0, TAU); c.stroke();
+    c.setLineDash([]);
+  }
+}
+function drawIsoRadius(c, padL, padT, iw, ih, fs = 11) {
+  const slope = 0.535, sun = STAR_INFO[4].hr;
+  c.save();
+  c.beginPath();
+  c.rect(padL, padT, iw, ih);
+  c.clip();
+  c.font = fs + 'px ' + UI_FONT;
+  c.setLineDash([7, 6]);
+  [[0.01, '0.01'], [0.1, '0.1'], [1, '1'], [10, '10'], [100, '100'], [1000, '1000']].forEach(([rv, lab]) => {
+    const off = -(2 * Math.log10(rv)) / 9;
+    const ya = sun[1] + slope * (0 - sun[0]) + off;
+    const yb = sun[1] + slope * (1 - sun[0]) + off;
+    const ax = padL, ay = padT + ya * ih, bx = padL + iw, by = padT + yb * ih;
+    let t0 = 0, t1 = 1;
+    if (ya < 0) t0 = -ya / (yb - ya);
+    if (yb > 1) t1 = (1 - ya) / (yb - ya);
+    t0 = Math.max(0, t0); t1 = Math.min(1, t1);
+    if (t1 <= t0) return;
+    c.strokeStyle = 'rgba(255,215,80,.30)';
+    c.beginPath();
+    c.moveTo(ax + (bx - ax) * t0, ay + (by - ay) * t0);
+    c.lineTo(ax + (bx - ax) * t1, ay + (by - ay) * t1);
+    c.stroke();
+    const ang = Math.atan2(by - ay, bx - ax);
+    const lt = t0 + (t1 - t0) * 0.16;
+    c.save();
+    c.translate(ax + (bx - ax) * lt, ay + (by - ay) * lt);
+    c.rotate(ang);
+    c.fillStyle = 'rgba(255,215,80,.6)';
+    c.textAlign = 'left'; c.textBaseline = 'bottom';
+    c.fillText(lab + ' R☉', 4, -3);
+    c.restore();
+  });
+  c.setLineDash([]);
+  c.restore();
+}
+function drawHR(id, hl, lumHl = -1, isoR = false) {
   const cv = document.getElementById(id);
   if (!cv) return;
   const c = cv.getContext('2d');
@@ -315,7 +462,7 @@ function drawHR(id, hl, lumHl = -1) {
   roundRect(c, 0, 0, w, h, 16); c.fill();
   c.strokeStyle = 'rgba(140,160,255,.25)'; c.lineWidth = 2;
   roundRect(c, 0, 0, w, h, 16); c.stroke();
-  const padL = 76, padR = 34, padT = 40, padB = 62;
+  const padL = HRP.l, padR = HRP.r, padT = HRP.t, padB = HRP.b;
   const iw = w - padL - padR, ih = h - padT - padB;
   const P = i => [padL + STAR_INFO[i].hr[0] * iw, padT + STAR_INFO[i].hr[1] * ih];
   c.strokeStyle = 'rgba(150,170,255,.4)'; c.lineWidth = 2;
@@ -337,6 +484,31 @@ function drawHR(id, hl, lumHl = -1) {
   c.fillText('低温', padL + iw - 6, padT + ih + 20);
   c.fillText('亮', padL - 12, padT + 10);
   c.fillText('暗', padL - 12, padT + ih - 10);
+  if (isoR) drawIsoRadius(c, padL, padT, iw, ih, 11);
+  c.save();
+  c.beginPath();
+  c.rect(padL, padT, iw, ih);
+  c.clip();
+  LUM_CLASSES.forEach((L, i) => {
+    const x = padL + L.region[0] * iw, y = padT + L.region[1] * ih;
+    const rx = L.region[2] * iw, ry = L.region[3] * ih;
+    c.beginPath();
+    c.ellipse(x, y, rx, ry, 0, 0, TAU);
+    if (i === lumHl) {
+      c.fillStyle = 'rgba(255,215,80,.20)';
+      c.fill();
+      c.strokeStyle = 'rgba(255,215,80,.85)';
+      c.lineWidth = 2;
+      c.stroke();
+    } else {
+      c.strokeStyle = 'rgba(255,215,80,.16)';
+      c.lineWidth = 1.2;
+      c.setLineDash([4, 5]);
+      c.stroke();
+      c.setLineDash([]);
+    }
+  });
+  c.restore();
   c.strokeStyle = 'rgba(160,180,255,.3)'; c.lineWidth = 12; c.lineCap = 'round';
   c.beginPath();
   STAR_INFO.forEach((_, i) => { const [x, y] = P(i); i ? c.lineTo(x, y) : c.moveTo(x, y); });
@@ -366,20 +538,31 @@ function drawHR(id, hl, lumHl = -1) {
   });
   LUM_CLASSES.forEach((L, i) => {
     const x = padL + L.hr[0] * iw, y = padT + L.hr[1] * ih;
+    const r = clamp(5 * L.size, 3, 8);
     if (i === lumHl) {
       c.fillStyle = 'rgba(255,215,80,.3)';
       c.beginPath(); c.arc(x, y, 17, 0, TAU); c.fill();
       c.fillStyle = '#ffd84d';
-      diamond(c, x, y, 9); c.fill();
+      diamond(c, x, y, r + 2.5); c.fill();
       c.fillStyle = '#ffd84d';
       c.font = 'bold 17px ' + UI_FONT;
       c.fillText('▼ 本关目标', x, Math.min(y + 26, padT + ih - 8));
     } else {
       c.strokeStyle = 'rgba(255,215,80,.55)';
       c.lineWidth = 1.8;
-      diamond(c, x, y, 5); c.stroke();
+      diamond(c, x, y, r); c.stroke();
     }
   });
+  if (isoR) {
+    c.font = '11px ' + UI_FONT;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    LUM_CLASSES.forEach(L => {
+      const x = padL + L.region[0] * iw;
+      const y = Math.max(padT + 9, padT + (L.region[1] - L.region[3]) * ih - 9);
+      c.fillStyle = 'rgba(255,220,120,.8)';
+      c.fillText(L.name + ' ' + L.yerkes, x, y);
+    });
+  }
   if (hl >= 0) {
     const [x, y] = P(hl);
     c.fillStyle = '#ffd84d';
@@ -471,6 +654,28 @@ let shake = 0, shakeT = 0;
 let comboLevel = 0, comboTimer = 0, maxCombo = 0;
 let suckT = 0, sweepT = 0, sweepDone = 0;
 let time = 0, lastBeat = 0, dangerLevel = 0;
+let track = null;
+let quiz = null, lastQuiz = -1;
+
+/* ================= 进度存档 ================= */
+const SAVE_KEY = 'stellar-zuma-save-v1';
+let progress = { spectral: [0, 0, 0, 0, 0, 0, 0], lum: [0, 0, 0, 0], best: 0, maxLevel: 1 };
+function loadProgress() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (!d) return;
+    if (Array.isArray(d.spectral)) progress.spectral = d.spectral.slice(0, 7).map(v => v ? 1 : 0);
+    if (Array.isArray(d.lum)) progress.lum = d.lum.slice(0, 4).map(v => v ? 1 : 0);
+    progress.best = d.best | 0;
+    progress.maxLevel = Math.max(1, d.maxLevel | 0);
+  } catch (e) { /* 存档损坏时忽略 */ }
+}
+function saveProgress() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch (e) { /* 无存储环境时忽略 */ }
+}
+function litCount() {
+  return progress.spectral.reduce((a, b) => a + b, 0) + progress.lum.reduce((a, b) => a + b, 0);
+}
 
 function levelConf(n) {
   if (n <= 7) {
@@ -486,7 +691,7 @@ function levelConf(n) {
       total: 9999,
     };
   }
-  if (n <= 12) {
+  if (n <= 11) {
     const k = n - 8;
     return {
       part: 2,
@@ -505,7 +710,7 @@ function levelConf(n) {
     part: 2,
     palette: [0, 1, 2, 3, 4, 5, 6],
     featured: -1,
-    lum: k % 5,
+    lum: k % 4,
     quota: 10 + k,
     speed: Math.min(64, 44 + k * 2),
     rollback: 130,
@@ -559,6 +764,8 @@ function startLevel(n) {
   spawnTimer = 0.5;
   comboLevel = 0; comboTimer = 0; maxCombo = 0; suckT = 0;
   sweepT = 0; sweepDone = 0; dangerLevel = 0;
+  track = null;
+  quiz = null;
   levelStartScore = score;
   currentType = pickType();
   nextType = pickType();
@@ -568,9 +775,10 @@ function startLevel(n) {
   }
   showOverlay(introHTML());
   if (gamePart === 1) renderStarCard('introIcon'); else renderLumCard('introIcon');
-  drawHR('hrIntro', featuredType, curLum);
+  drawHR('hrIntro', featuredType, curLum, gamePart === 2);
   state = 'intro';
   updateHUD(true);
+  drawProgressHR('hrMini', 230, 158);
 }
 function setupTitle() {
   levelConf(1);
@@ -579,6 +787,8 @@ function setupTitle() {
   remaining = 0; total = 0;
   currentType = 0; nextType = 4;
   showOverlay(titleHTML());
+  drawProgressHR('hrTitle', 460, 250);
+  drawProgressHR('hrMini', 230, 158);
   state = 'title';
 }
 
@@ -687,18 +897,6 @@ function applyLumEffect(e) {
   } else if (L.effect === 'slow') {
     slowUntil = time + 6;
     SFX.tone(400, 0.4, 'triangle', 0.15, 0, 180);
-  } else if (L.effect === 'purge') {
-    const victims = chain.filter(b => b.type === e.type);
-    if (victims.length > 1) {
-      const mult = comboBump();
-      const res = killBalls(victims);
-      const pts = 12 * res.removed.length * mult;
-      score += pts;
-      floatText(res.cx, res.cy - 26, '能量释放 +' + pts, '#ffd84d', 21);
-      shake = 7; shakeT = 0.26;
-      SFX.match(res.removed.length, comboLevel);
-      checkQuota();
-    }
   } else if (L.effect === 'pierce') {
     pierceUntil = time + 8;
     SFX.tone(1200, 0.12, 'square', 0.15, 0, 300);
@@ -801,8 +999,10 @@ function spawnUpdate(dt) {
     const tail = chain[chain.length - 1];
     if (!tail || tail.dist >= D - 1) {
       const ball = { type: pickType(), dist: 0 };
-      if (gamePart === 2 && collected < quota && lumOnChain() < 3 && Math.random() < 0.15)
+      if (gamePart === 2 && collected < quota && lumOnChain() < 3 && Math.random() < 0.15) {
         ball.special = curLum;
+        ball.type = LUM_CLASSES[curLum].color;
+      }
       chain.push(ball);
       remaining--;
       spawnTimer = D / pushSpeed;
@@ -824,6 +1024,8 @@ function updateSuck(dt) {
     if (suckT > 0.8) {
       state = 'gameover';
       SFX.gameOver();
+      progress.best = Math.max(progress.best, score);
+      saveProgress();
       showOverlay(gameoverHTML());
     }
   }
@@ -893,6 +1095,68 @@ function startSweep() {
   SFX.tone(880, 0.4, 'triangle', 0.2, 0, 1320);
 }
 
+/* ================= 演化轨迹动画 ================= */
+function trackForClear() {
+  if (gamePart === 1) {
+    const h = STAR_INFO[featuredType].hr;
+    return [[h[0] + 0.10, Math.min(0.95, h[1] + 0.24)], [h[0] + 0.05, h[1] + 0.11], h.slice()];
+  }
+  const T = [
+    [[0.05, 0.16], [0.09, 0.07], [0.13, 0.06]],
+    [[0.13, 0.06], [0.38, 0.05], [0.62, 0.04], [0.84, 0.05]],
+    [[0.56, 0.56], [0.61, 0.46], [0.66, 0.35], [0.70, 0.29]],
+    [[0.70, 0.29], [0.48, 0.30], [0.27, 0.44], [0.14, 0.66], [0.12, 0.86]],
+  ];
+  return T[curLum].map(p => p.slice());
+}
+function drawTrackFrame() {
+  const cv = document.getElementById('hrClear');
+  if (!cv) return;
+  drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
+  const c = cv.getContext('2d');
+  const w = cv.width, h = cv.height;
+  const pts = track.pts.map(p => hrMap(w, h, p[0], p[1]));
+  c.strokeStyle = 'rgba(255,215,80,.4)';
+  c.lineWidth = 2;
+  c.setLineDash([6, 5]);
+  c.beginPath();
+  pts.forEach((p, i) => { if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); });
+  c.stroke();
+  c.setLineDash([]);
+  const u = clamp(track.t / track.dur, 0, 1);
+  const ease = u * u * (3 - 2 * u);
+  const f = ease * (pts.length - 1);
+  const i0 = Math.min(pts.length - 2, Math.floor(f));
+  const lt = f - i0;
+  const x = pts[i0][0] + (pts[i0 + 1][0] - pts[i0][0]) * lt;
+  const y = pts[i0][1] + (pts[i0 + 1][1] - pts[i0][1]) * lt;
+  c.save();
+  c.globalCompositeOperation = 'lighter';
+  c.lineCap = 'round';
+  c.strokeStyle = 'rgba(255,225,140,.75)';
+  c.lineWidth = 3;
+  c.beginPath();
+  c.moveTo(pts[0][0], pts[0][1]);
+  for (let k = 1; k <= i0; k++) c.lineTo(pts[k][0], pts[k][1]);
+  c.lineTo(x, y);
+  c.stroke();
+  const R = 4.5 + Math.sin(Math.min(u, 1) * Math.PI) * 2;
+  const g = c.createRadialGradient(x, y, 0, x, y, 15);
+  g.addColorStop(0, 'rgba(255,240,190,.95)');
+  g.addColorStop(0.4, 'rgba(255,215,80,.4)');
+  g.addColorStop(1, 'rgba(255,215,80,0)');
+  c.fillStyle = g;
+  c.beginPath(); c.arc(x, y, 15, 0, TAU); c.fill();
+  c.fillStyle = '#fff6d8';
+  c.beginPath(); c.arc(x, y, R, 0, TAU); c.fill();
+  c.restore();
+  if (u >= 1) {
+    c.strokeStyle = 'rgba(255,215,80,.7)';
+    c.lineWidth = 2;
+    c.beginPath(); c.arc(x, y, 15 + 2.5 * Math.sin(time * 4), 0, TAU); c.stroke();
+  }
+}
+
 /* ================= 主循环 ================= */
 function update(dt) {
   time += dt;
@@ -942,9 +1206,16 @@ function update(dt) {
         state = 'levelclear';
         score += levelBonus();
         SFX.levelClear();
+        if (gamePart === 1) progress.spectral[featuredType] = 1; else progress.lum[curLum] = 1;
+        progress.best = Math.max(progress.best, score);
+        progress.maxLevel = Math.max(progress.maxLevel, level + 1);
+        saveProgress();
+        quiz = pickQuestion();
         showOverlay(clearHTML());
         if (gamePart === 1) renderStarCard('clearIcon'); else renderLumCard('clearIcon');
-        drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1);
+        drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
+        track = { pts: trackForClear(), t: 0, dur: 2.6 };
+        drawProgressHR('hrMini', 230, 158);
       }
     } else sweepDone = 0.6;
   }
@@ -956,6 +1227,10 @@ function frame(ts) {
   lastTs = ts;
   update(dt);
   render();
+  if (track) {
+    if (state === 'levelclear') { track.t += dt; drawTrackFrame(); }
+    else track = null;
+  }
   updateHUD(false);
 }
 
@@ -1032,20 +1307,22 @@ function drawChain() {
       scale = 1 - 0.62 * t;
       alpha = 1 - 0.5 * t;
     }
-    drawBall(p.x, p.y, b.type, scale, alpha);
-    if (b.special != null && alpha > 0.5) {
+    const L = b.special != null ? LUM_CLASSES[b.special] : null;
+    const sz = L ? L.size : 1;
+    drawBall(p.x, p.y, b.type, scale * sz, alpha);
+    if (L && alpha > 0.5) {
       const pul = 1 + 0.09 * Math.sin(time * 5 + b.dist * 0.05);
       ctx.strokeStyle = `rgba(255,215,80,${0.5 + 0.3 * Math.sin(time * 5 + b.dist * 0.1)})`;
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 26 * pul, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, p.y, (BALL_R + 4) * sz * pul, 0, TAU); ctx.stroke();
       ctx.fillStyle = '#ffd84d';
       ctx.font = 'bold 13px ' + UI_FONT;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 4;
-      ctx.fillText(LUM_CLASSES[b.special].key, p.x, p.y - 31);
+      ctx.fillText(L.key, p.x, p.y - (BALL_R + 9) * sz);
       ctx.shadowBlur = 0;
       if (Math.random() < 0.03 && particles.length < 380)
-        particles.push({ x: p.x + (Math.random() - 0.5) * 30, y: p.y + (Math.random() - 0.5) * 30, vx: 0, vy: -26, life: 0.5, max: 0.5, size: 1.6, color: '#ffd84d', kind: 'spark' });
+        particles.push({ x: p.x + (Math.random() - 0.5) * 30 * sz, y: p.y + (Math.random() - 0.5) * 30 * sz, vx: 0, vy: -26, life: 0.5, max: 0.5, size: 1.6, color: '#ffd84d', kind: 'spark' });
     }
   }
 }
@@ -1225,27 +1502,43 @@ function titleHTML() {
   const legend = TYPES.map(t =>
     `<div class="star"><span class="dot" style="background:${t.color};box-shadow:0 0 10px ${t.glow}, inset 0 -4px 6px ${t.dark}">${t.key}</span><span class="nm">${t.name}</span></div>`
   ).join('');
+  const unlocked = litCount() >= 11;
+  const hint = unlocked
+    ? '选关已解锁 · 点击赫罗图上的点或区域,直接开始对应关卡'
+    : `已点亮 ${litCount()}/11 · 通关点亮整张赫罗图后解锁选关`;
+  const hasSave = progress.best > 0 || progress.maxLevel > 1;
+  const saveInfo = hasSave
+    ? `<p class="tip">最高分 ${progress.best.toLocaleString('zh-CN')} · 已抵达第 ${progress.maxLevel} 关</p>
+    <button class="primary" data-action="continue">继续游戏</button>
+    <button class="ghost" data-action="start">从头开始</button>`
+    : `<button class="primary" data-action="start">开始游戏</button>`;
   return `<div class="card">
     <h1>星链祖玛</h1><p class="sub">STELLAR ZUMA</p>
-    <p class="desc">第一部分：七关收集七大光谱型 <b>O · B · A · F · G · K · M</b>！<br>第二部分：按赫罗图<b>光度分类</b>设关——超巨星 / 亮巨星 / 巨星 / 亚巨星 / 白矮星。<br>三颗同类即湮灭；<b>四连自动湮灭</b>；连续消除享<b>连击加成</b>。</p>
+    <p class="desc">第一部分：七关收集七大光谱型 <b>O · B · A · F · G · K · M</b>！<br>第二部分：按<b>恒星演化</b>设关——蓝超巨星 / 红超巨星 / 红巨星 / 白矮星。<br>三颗同类即湮灭；<b>四连自动湮灭</b>；连续消除享<b>连击加成</b>。</p>
     <div class="legend">${legend}</div>
+    <canvas id="hrTitle" width="460" height="250" class="${unlocked ? 'selectable' : ''}"></canvas>
+    <p id="hrHint" class="tip">${hint}</p>
+    ${saveInfo}
     <p class="controls">鼠标瞄准 · 点击发射 · <b>空格 / 右键</b> 换球 · <b>P</b> 暂停 · <b>M</b> 音效</p>
-    <button class="primary" data-action="start">开始游戏</button>
   </div>`;
 }
 function introHTML() {
   if (gamePart === 2) {
     const L = LUM_CLASSES[curLum];
+    const ladder = [['Ia', '超巨星'], ['III', '巨星'], ['V', '主序矮星'], ['VII', '白矮星']]
+      .map(([k, n]) => L.yerkes === k ? `<b>${k} ${n}</b>` : `${k} ${n}`).join(' · ');
     return `<div class="card intro">
       <div class="intro-head">
         <canvas id="introIcon" width="96" height="96"></canvas>
         <div class="intro-title">
           <h1>第 ${level} 关 · 收集 ${L.name}</h1>
-          <p class="sub">第二部分 · 光度分类 ${L.key}</p>
+          <p class="sub">第二部分 · 光度类 ${L.yerkes} · 恒星演化 ${L.key}</p>
         </div>
       </div>
       <p class="desc">${L.desc}</p>
-      <p class="tip">金色冠环恒星会出现在星链中，摧毁 <b>${quota}</b> 颗<br>技能 <b>${L.effectName}</b>：${L.effectDesc}<br>代表恒星：${L.example}</p>
+      <p class="tip">金色冠环恒星会出现在星链中，摧毁 <b>${quota}</b> 颗<br>技能 <b>${L.effectName}</b>：${L.effectDesc}<br>代表恒星：${L.example} · ${L.radius}</p>
+      <p class="tip">光度分类:${ladder}<br>恒星代号 = 光谱型 + 光度类:<b>B8Ia</b> = B 型 + Ia 超巨星,<b>G2V</b> = G 型 + V 主序矮星(太阳)<br>读图:金色虚线为等半径线,同一条线上半径相同——巨星与超巨星在右上,矮星贴着左下</p>
+      ${curLum === 3 ? `<p class="tip">矮星家族:红矮星(V)是主序上的 M 型星,靠氢燃烧发光;白矮星(VII)是恒星遗骸,靠余热发光;棕矮星质量太小没点燃氢,不算真恒星。</p>` : ''}
       <canvas id="hrIntro" width="640" height="300"></canvas>
       <button class="primary" data-action="go">出发</button>
     </div>`;
@@ -1274,12 +1567,13 @@ function clearHTML() {
         <canvas id="clearIcon" width="96" height="96"></canvas>
         <div class="intro-title">
           <h1 class="good">${L.name} · 收集完成!</h1>
-          <p class="sub">光度分类 ${L.key} · ${L.effectName}</p>
+          <p class="sub">恒星演化 ${L.key} · ${L.effectName}</p>
         </div>
       </div>
       <p class="desc">关卡奖励 <b>+${levelBonus()}</b> · 当前得分 <b>${score.toLocaleString('zh-CN')}</b> · 最大连击 <b>×${Math.max(1, maxCombo)}</b></p>
       <canvas id="hrClear" width="640" height="300"></canvas>
-      <button class="primary" data-action="next">${level < 12 ? '收集下一类恒星' : '进入无尽挑战'}</button>
+      ${quizHTML()}
+      <button id="clearNext" class="primary hidden" data-action="next">${level < 11 ? '收集下一类恒星' : '进入无尽挑战'}</button>
     </div>`;
   }
   const S = STAR_INFO[featuredType];
@@ -1294,7 +1588,8 @@ function clearHTML() {
     </div>
     <p class="desc">关卡奖励 <b>+${levelBonus()}</b> · 当前得分 <b>${score.toLocaleString('zh-CN')}</b></p>
     <canvas id="hrClear" width="640" height="300"></canvas>
-    <button class="primary" data-action="next">${level < 7 ? '收集下一类恒星' : '进入第二部分'}</button>
+    ${quizHTML()}
+    <button id="clearNext" class="primary hidden" data-action="next">${level < 7 ? '收集下一类恒星' : '进入第二部分'}</button>
   </div>`;
 }
 function levelBonus() { return 500 + level * 100; }
@@ -1313,12 +1608,100 @@ function pauseHTML() {
     <button class="primary" data-action="resume">继续游戏</button>
   </div>`;
 }
+/* ================= 知识问答 / 选关 ================= */
+function pickQuestion() {
+  const key = gamePart === 1 ? TYPES[featuredType].key : ['BSG', 'RSG', 'RG', 'WD'][curLum];
+  const cand = f => QUIZ_POOL.map((q, i) => ({ q, i })).filter(x => f(x.q) && x.i !== lastQuiz);
+  let pool = cand(q => q.keys.includes(key));
+  if (!pool.length || Math.random() >= 0.6) {
+    const hr = cand(q => q.keys.includes('HR'));
+    if (hr.length) pool = hr;
+  }
+  if (!pool.length) pool = cand(() => true);
+  const pick = pool[(Math.random() * pool.length) | 0];
+  lastQuiz = pick.i;
+  const order = [0, 1, 2];
+  for (let i = 2; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [order[i], order[j]] = [order[j], order[i]]; }
+  return { ref: pick.q, order, answered: false };
+}
+function answerQuiz(pickIdx) {
+  if (!quiz || quiz.answered) return;
+  quiz.answered = true;
+  const right = quiz.order[pickIdx] === 0;
+  overlay.querySelectorAll('button[data-quiz]').forEach((b, j) => {
+    b.disabled = true;
+    if (quiz.order[j] === 0) b.classList.add('right');
+    else if (j === pickIdx) b.classList.add('wrong');
+  });
+  if (right) {
+    score += 200;
+    progress.best = Math.max(progress.best, score);
+    saveProgress();
+    updateHUD(true);
+    SFX.match(3, 0);
+  } else {
+    SFX.clack();
+  }
+  const expEl = document.getElementById('quizExp');
+  if (expEl) expEl.textContent = (right ? '回答正确 +200 · ' : '正确答案已标出 · ') + quiz.ref.exp;
+  const nb = document.getElementById('clearNext');
+  if (nb) nb.classList.remove('hidden');
+}
+function quizHTML() {
+  if (!quiz) return '';
+  return `<div class="quiz">
+    <p class="quiz-q">知识问答 · 答对 +200</p>
+    <p class="desc">${quiz.ref.q}</p>
+    <div class="quiz-opts">${quiz.order.map((oi, i) =>
+      `<button class="ghost" data-quiz="${i}">${quiz.ref.opts[oi]}</button>`).join('')}</div>
+    <p id="quizExp" class="tip"></p>
+  </div>`;
+}
+function handleTitleHrClick(e) {
+  const cv = document.getElementById('hrTitle');
+  const hint = document.getElementById('hrHint');
+  if (litCount() < 11) {
+    if (hint) {
+      hint.textContent = `赫罗图尚未点亮(${litCount()}/11),通关收集以解锁选关`;
+      hint.classList.add('warn');
+    }
+    SFX.clack();
+    return;
+  }
+  const r = cv.getBoundingClientRect();
+  const mx = (e.clientX - r.left) / r.width * cv.width;
+  const my = (e.clientY - r.top) / r.height * cv.height;
+  const padL = cv.width * 0.12, padR = cv.width * 0.05, padT = cv.height * 0.14, padB = cv.height * 0.21;
+  const iw = cv.width - padL - padR, ih = cv.height - padT - padB;
+  const nx = (mx - padL) / iw, ny = (my - padT) / ih;
+  let target = 0;
+  for (let i = 0; i < 7; i++) {
+    const px = padL + STAR_INFO[i].hr[0] * iw, py = padT + STAR_INFO[i].hr[1] * ih;
+    if (Math.hypot(mx - px, my - py) < 20) { target = i + 1; break; }
+  }
+  if (!target) {
+    for (let i = 0; i < LUM_CLASSES.length; i++) {
+      const L = LUM_CLASSES[i];
+      const dx = (nx - L.region[0]) / L.region[2], dy = (ny - L.region[1]) / L.region[3];
+      if (dx * dx + dy * dy <= 1) { target = 8 + i; break; }
+    }
+  }
+  if (target) {
+    SFX.ensure(); SFX.click();
+    score = 0;
+    startLevel(target);
+  }
+}
 overlay.addEventListener('click', e => {
+  if (e.target.id === 'hrTitle') { handleTitleHrClick(e); return; }
+  const qb = e.target.closest('button[data-quiz]');
+  if (qb) { SFX.ensure(); answerQuiz(+qb.dataset.quiz); return; }
   const b = e.target.closest('button[data-action]');
   if (!b) return;
   SFX.ensure(); SFX.click();
   const act = b.dataset.action;
   if (act === 'start' || act === 'restart') { score = 0; level = 1; startLevel(1); }
+  else if (act === 'continue') { score = 0; startLevel(Math.max(1, progress.maxLevel)); }
   else if (act === 'go') { hideOverlay(); state = 'playing'; }
   else if (act === 'next') { level++; startLevel(level); }
   else if (act === 'retry') { score = levelStartScore; startLevel(level); }
@@ -1356,7 +1739,7 @@ window.addEventListener('keydown', e => {
     muted = !muted;
   } else if (e.key === 'Enter') {
     const b = overlay.querySelector('button.primary');
-    if (b && !overlay.classList.contains('hidden')) b.click();
+    if (b && !overlay.classList.contains('hidden') && !b.classList.contains('hidden')) b.click();
   }
 });
 window.addEventListener('blur', () => {
@@ -1364,6 +1747,7 @@ window.addEventListener('blur', () => {
 });
 
 /* ================= 启动 ================= */
+loadProgress();
 makeSprites();
 makeBackground();
 const bootParams = new URLSearchParams(window.location.search);
@@ -1404,6 +1788,7 @@ if (typeof window !== 'undefined') {
     effectFlags: () => ({ wind: time < windUntil, slow: time < slowUntil, pierce: time < pierceUntil }),
     specialsInChain: () => chain.filter(b => b.special != null).length,
     gamePart: () => gamePart,
+    progress: () => progress,
     clearHTML: () => clearHTML(),
     startLevelAt: n => { level = n; startLevel(n); },
     killSpecial: () => {
