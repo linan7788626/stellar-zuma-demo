@@ -755,8 +755,9 @@ function spawnBall() {
   const tail = chain[chain.length - 1];
   const tailRun = tail ? tailRunInChain() : 0;
   let type, special = null;
-  const refill = targetSpawnLeft > 0 && countTargets() < 4;
-  if (refill || (targetSpawnLeft > 0 && tailRun < 3 && Math.random() < 0.30)) {
+  const refill = targetSpawnLeft > 0 && countTargets() < 4 && !(tailRun >= 3 && tColors.includes(tail.type));
+  const lottery = !refill && targetSpawnLeft > 0 && tailRun < 3 && Math.random() < 0.30;
+  if (refill || lottery) {
     type = randOf(tColors);
     targetSpawnLeft--;
     if (gamePart === 2) special = curLum;
@@ -1595,7 +1596,7 @@ function introHTML() {
         </div>
       </div>
       <p class="desc">${L.desc}</p>
-      <p class="tip">发射器中不会出现目标色球,发射的星球只会插入星链(冠环星共出现 ${quota} 颗)<br>冠环星连成 <b>4 颗</b>即自动湮灭并整批计入收集;星链中冠环星不足 <b>4 颗</b>时,尾部新生恒星会自动补齐<br>全部冠环星出现并收集完毕即过关 · 技能 <b>${L.effectName}</b>：${L.effectDesc} · 代表恒星：${L.example} · ${L.radius}</p>
+      <p class="tip">发射的星球只会插入星链,冠环星共出现 ${quota} 颗,星链中不足 <b>4 颗</b>时尾部新生恒星自动补齐(新生星不会直接连成 4 连)<br>冠环星连成 <b>4 颗</b>即自动湮灭并整批计入收集——通过消除普通星球引发链段合并,把分散的冠环星凑到一起!<br>技能 <b>${L.effectName}</b>：${L.effectDesc} · 代表恒星：${L.example} · ${L.radius}</p>
       <p class="tip">光度分类:${ladder}<br>恒星代号 = 光谱型 + 光度类:<b>B8Ia</b> = B 型 + Ia 超巨星,<b>G2V</b> = G 型 + V 主序矮星(太阳)<br>读图:金色虚线为等半径线,同一条线上半径相同——巨星与超巨星在右上,矮星贴着左下</p>
       ${curLum === 2 ? `<p class="tip">矮星家族:红矮星(V)是主序上的 M 型星,靠氢燃烧发光;白矮星(VII)是恒星遗骸,靠余热发光;棕矮星质量太小没点燃氢,不算真恒星。</p>` : ''}
       <canvas id="hrIntro" width="640" height="300"></canvas>
@@ -1613,7 +1614,7 @@ function introHTML() {
       </div>
     </div>
     <p class="desc">${S.desc}</p>
-    <p class="tip">发射器中不会出现 ${T.key} 型球,发射的星球只会插入星链(目标星共出现 ${quota} 颗)<br>目标星连成 <b>4 颗</b>即自动湮灭并整批计入收集;星链中目标星不足 <b>4 颗</b>时,尾部新生恒星会自动补齐<br>全部目标星出现并收集完毕即过关 · 收集顺序:O → B → A → F → G → K → M · 代表恒星:${S.example}</p>
+    <p class="tip">发射的星球只会插入星链,目标星共出现 ${quota} 颗,星链中不足 <b>4 颗</b>时尾部新生恒星自动补齐(新生星不会直接连成 4 连)<br>目标星连成 <b>4 颗</b>即自动湮灭并整批计入收集——通过消除普通星球引发链段合并,把分散的目标星凑到一起!<br>收集顺序:O → B → A → F → G → K → M · 代表恒星:${S.example}</p>
     <canvas id="hrIntro" width="640" height="300"></canvas>
     <button class="primary" data-action="go">出发</button>
   </div>`;
