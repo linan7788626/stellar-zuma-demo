@@ -755,7 +755,8 @@ function spawnBall() {
   const tail = chain[chain.length - 1];
   const tailRun = tail ? tailRunInChain() : 0;
   let type, special = null;
-    if (targetSpawnLeft > 0 && tailRun < 3 && Math.random() < 0.30) {
+  const refill = targetSpawnLeft > 0 && countTargets() < 3;
+  if (refill || (targetSpawnLeft > 0 && tailRun < 3 && Math.random() < 0.30)) {
     type = randOf(tColors);
     targetSpawnLeft--;
     if (gamePart === 2) special = curLum;
@@ -832,11 +833,12 @@ function autoClearScan() {
     let j = i;
     while (j + 1 < n && chain[j + 1].type === t && chain[j].dist - chain[j + 1].dist <= D + 3) j++;
     const len = j - i + 1;
-    if (len >= 3) {
+    if (len >= 2) {
       const run = chain.slice(i, j + 1);
       const allT = run.every(isTargetBall);
-      if (len >= (allT ? 3 : 4) && !(allT && targetSpawnLeft <= 0 && countTargets() === len)) {
-        removeRun(i, j, 'auto');
+      const wipe = allT && targetSpawnLeft <= 0 && countTargets() === len;
+      if (wipe || len >= (allT ? 3 : 4)) {
+        removeRun(i, wipe ? j - 1 : j, 'auto');
         return;
       }
     }
@@ -950,13 +952,14 @@ function checkJunction(idx) {
   if (chain[idx - 1].type !== chain[idx].type) return;
   const run = findRun(idx - 1);
   const len = run[1] - run[0] + 1;
-  if (len >= 3) {
+  if (len >= 2) {
     const runBalls = chain.slice(run[0], run[1] + 1);
-    if (runBalls.every(isTargetBall) && targetSpawnLeft <= 0 && countTargets() === len) {
-      SFX.clack();
-      return;
-    }
-    removeRun(run[0], run[1], 'merge');
+    const allT = runBalls.every(isTargetBall);
+    if (allT && targetSpawnLeft <= 0 && countTargets() === len) {
+      removeRun(run[0], run[1] - 1, 'auto');
+    } else if (len >= 3) {
+      removeRun(run[0], run[1], 'merge');
+    } else SFX.clack();
   } else SFX.clack();
 }
 function insertShot(s, i) {
@@ -1029,14 +1032,6 @@ function updateShots(dt) {
         floatText(p.x, p.y - 20, '+15', '#ffd84d', 14);
         killBalls([victim]);
         SFX.pop();
-        checkQuota();
-      } else if (isTargetBall(victim)) {
-        const p = posAt(victim.dist);
-        score += 10;
-        floatText(p.x, p.y - 20, '已收集 +10', '#ffd84d', 14);
-        killBalls([victim]);
-        SFX.pop();
-        shots.splice(i, 1);
         checkQuota();
       } else {
         insertShot(s, hitIdx);
@@ -1352,6 +1347,12 @@ function drawChain() {
     const L = b.special != null ? LUM_CLASSES[b.special] : null;
     const sz = L ? L.size : 1;
     drawBall(p.x, p.y, b.type, scale * sz, alpha);
+    if (isTargetBall(b) && alpha > 0.4) {
+      const pul2 = 1 + 0.09 * Math.sin(time * 5 + b.dist * 0.04);
+      ctx.strokeStyle = hexA(TYPES[b.type].glow, 0.45 + 0.3 * Math.sin(time * 4 + b.dist * 0.07));
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(p.x, p.y, (BALL_R + 10) * sz * pul2, 0, TAU); ctx.stroke();
+    }
     if (protect && isTargetBall(b) && alpha > 0.5) {
       const pul2 = 1 + 0.12 * Math.sin(time * 6);
       ctx.strokeStyle = 'rgba(160,255,190,.85)';
@@ -1594,7 +1595,7 @@ function titleHTML() {
     : `<button class="primary" data-action="start">开始游戏</button>`;
   return `<div class="card">
     <h1>星链祖玛</h1><p class="sub">STELLAR ZUMA</p>
-    <p class="desc">第一部分：按 <b>O → B → A → F → G → K → M</b> 顺序七关收集七大光谱型！<br>第二部分：三大光度类别——<b>超巨星 / 巨星 / 矮星</b>。<br>发射器中不会出现目标星;射中目标即收集,<b>只剩最后 1 颗</b>目标星时收集成功!</p>
+    <p class="desc">第一部分：按 <b>O → B → A → F → G → K → M</b> 顺序七关收集七大光谱型！<br>第二部分：三大光度类别——<b>超巨星 / 巨星 / 矮星</b>。<br>发射器中不会出现目标星;目标星连成 <b>3 颗</b>即自动收集、不足 3 颗自动补充,<b>只剩最后 1 颗</b>时收集成功!</p>
     <div class="legend">${legend}</div>
     <canvas id="hrTitle" width="460" height="250" class="${unlocked ? 'selectable' : ''}"></canvas>
     <p id="hrHint" class="tip">${hint}</p>
@@ -1616,7 +1617,7 @@ function introHTML() {
         </div>
       </div>
       <p class="desc">${L.desc}</p>
-      <p class="tip">发射器中不会出现目标色球;金色冠环恒星会出现在星链中,直接射中即可收集(共出现 ${quota} 颗)<br>冠环星连成 <b>3 颗</b>即自动湮灭并整批计入收集;星链中只剩 <b>最后 1 颗</b> 冠环恒星时收集成功<br>技能 <b>${L.effectName}</b>：${L.effectDesc} · 代表恒星：${L.example} · ${L.radius}</p>
+      <p class="tip">发射器中不会出现目标色球,发射的星球只会插入星链(冠环星共出现 ${quota} 颗)<br>冠环星连成 <b>3 颗</b>即自动湮灭并整批计入收集;不足 <b>3 颗</b>时星链会自动补充冠环星<br>星链中只剩 <b>最后 1 颗</b> 冠环恒星时收集成功 · 技能 <b>${L.effectName}</b>：${L.effectDesc} · 代表恒星：${L.example} · ${L.radius}</p>
       <p class="tip">光度分类:${ladder}<br>恒星代号 = 光谱型 + 光度类:<b>B8Ia</b> = B 型 + Ia 超巨星,<b>G2V</b> = G 型 + V 主序矮星(太阳)<br>读图:金色虚线为等半径线,同一条线上半径相同——巨星与超巨星在右上,矮星贴着左下</p>
       ${curLum === 2 ? `<p class="tip">矮星家族:红矮星(V)是主序上的 M 型星,靠氢燃烧发光;白矮星(VII)是恒星遗骸,靠余热发光;棕矮星质量太小没点燃氢,不算真恒星。</p>` : ''}
       <canvas id="hrIntro" width="640" height="300"></canvas>
@@ -1634,7 +1635,7 @@ function introHTML() {
       </div>
     </div>
     <p class="desc">${S.desc}</p>
-    <p class="tip">发射器中不会出现 ${T.key} 型球;直接射中星链中的目标球即可收集(共出现 ${quota} 颗)<br>目标星连成 <b>3 颗</b>即自动湮灭并整批计入收集;星链中只剩 <b>最后 1 颗</b> ${T.key} 型星时收集成功<br>收集顺序:O → B → A → F → G → K → M · 代表恒星:${S.example}</p>
+    <p class="tip">发射器中不会出现 ${T.key} 型球,发射的星球只会插入星链(目标星共出现 ${quota} 颗)<br>目标星连成 <b>3 颗</b>即自动湮灭并整批计入收集;不足 <b>3 颗</b>时星链会自动补充目标星<br>星链中只剩 <b>最后 1 颗</b> ${T.key} 型星时收集成功 · 收集顺序:O → B → A → F → G → K → M · 代表恒星:${S.example}</p>
     <canvas id="hrIntro" width="640" height="300"></canvas>
     <button class="primary" data-action="go">出发</button>
   </div>`;
@@ -1869,6 +1870,8 @@ if (typeof window !== 'undefined') {
     specialsInChain: () => chain.filter(b => b.special != null).length,
     gamePart: () => gamePart,
     progress: () => progress,
+    chainRef: () => chain,
+    setBudget: v => { targetSpawnLeft = v; },
     clearHTML: () => clearHTML(),
     startLevelAt: n => { level = n; startLevel(n); },
     killSpecial: () => {
