@@ -35,6 +35,7 @@ const LEVEL_PALETTES = [
   [0, 1, 2, 3, 4, 6],
   [0, 1, 2, 3, 4, 5, 6],
 ];
+const COLLECT_ORDER = [0, 1, 2, 3, 4, 5, 6];
 
 const STAR_INFO = [
   { temp: '≥ 30,000 K', example: '参宿一 · Alnitak', hr: [0.04, 0.06], desc: '最炽热也最稀有的蓝巨星，质量可达太阳数十倍，以电离氦谱线为特征，寿命仅有数百万年。' },
@@ -62,6 +63,30 @@ const LUM_CLASSES = [
     marker: [0.12, 0.88], lab: [0.115, 0.705], region: [0.12, 0.82, 0.10, 0.10],
     desc: '白矮星是矮星家族的代表：类太阳恒星死亡后遗下的核心，只有地球大小却拥有接近太阳的质量，密度高达水的百万倍，由电子简并压力支撑。',
     effect: 'pierce', effectName: '简并子弹', effectDesc: '发射的星球变成穿透弹,直接摧毁沿途恒星 8 秒' },
+];
+
+const EVO_CHAINS = [
+  {
+    name: '太阳的演化',
+    desc: '像太阳这样的中小质量恒星的完整一生:百余亿年的主序氢燃烧后,膨胀为红巨星,抛去外层,留下一颗白矮星。',
+    stages: [
+      { key: 'G主序', name: 'G 型主序星', type: 4, ti: 0, desc: '太阳正处的阶段:核心稳定地进行氢聚变,主序期约占恒星寿命的九成。' },
+      { key: '红巨星', name: '红巨星', type: 5, ti: 2, desc: '核心氢耗尽后外层剧烈膨胀,恒星变大变红,太阳将膨胀到地球轨道附近。' },
+      { key: '抛壳', name: '抛壳 · 行星状星云', type: 1, ti: 4, desc: '外层气体被抛入太空,形成绚丽的行星状星云,裸露出炽热的星核。' },
+      { key: '白矮星', name: '白矮星', type: 2, ti: 6, desc: '遗下的核心:地球大小却接近太阳质量,由电子简并压支撑,缓缓冷却。' },
+    ],
+    track: [[0.56, 0.56], [0.61, 0.46], [0.68, 0.30], [0.55, 0.28], [0.40, 0.33], [0.25, 0.50], [0.12, 0.86]],
+  },
+  {
+    name: '大质量恒星的演化',
+    desc: '大质量恒星的一生:诞生于主序热端,离开主序成为蓝超巨星,膨胀为红超巨星,最终以超新星爆发收场。',
+    stages: [
+      { key: 'O主序', name: '主序热端 · O 型星', type: 0, ti: 0, desc: '大质量恒星诞生于主序热端:温度最高、光度最强,寿命却只有数百万年。' },
+      { key: '蓝超巨星', name: '蓝超巨星', type: 0, ti: 2, desc: '离开主序的蓝白色巨兽:光度可达太阳数十万倍,以超新星爆发收场。' },
+      { key: '红超巨星', name: '红超巨星', type: 6, ti: 4, desc: '膨胀到极限的晚期阶段:半径可达太阳近千倍,核心正酝酿超新星爆发。' },
+    ],
+    track: [[0.04, 0.06], [0.20, 0.05], [0.45, 0.045], [0.65, 0.04], [0.84, 0.04]],
+  },
 ];
 
 const QUIZ_POOL = [
@@ -401,10 +426,43 @@ function drawProgressHR(id, w, h) {
     c.fillStyle = progress.lum[i] ? 'rgba(255,220,120,.95)' : 'rgba(255,220,120,.5)';
     c.fillText(L.yerkes, x, y);
   });
+  if (gamePart === 3) {
+    EVO_CHAINS.forEach((chain, ci) => {
+      const pts = chain.track.map(p => [padL + p[0] * iw, padT + p[1] * ih]);
+      const active = gamePart === 3 && ci === evoInfo().chainIdx;
+      c.strokeStyle = active ? 'rgba(255,215,80,.6)' : 'rgba(255,215,80,.2)';
+      c.lineWidth = active ? 2 : 1.2;
+      c.setLineDash([5, 4]);
+      c.beginPath();
+      pts.forEach((p, i) => { if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); });
+      c.stroke();
+      c.setLineDash([]);
+      chain.stages.forEach((st, si) => {
+        const [x, y] = pts[st.ti];
+        const done = progress.evo[ci][si] === 1 || (active && si < evoInfo().stageIdx);
+        if (done) {
+          c.fillStyle = '#ffd84d';
+          c.beginPath(); c.arc(x, y, 4.5, 0, TAU); c.fill();
+        } else if (active && si === evoInfo().stageIdx) {
+          c.fillStyle = TYPES[st.type].color;
+          c.beginPath(); c.arc(x, y, 5.5, 0, TAU); c.fill();
+          c.strokeStyle = 'rgba(255,215,80,.9)'; c.lineWidth = 1.5;
+          c.beginPath(); c.arc(x, y, 9, 0, TAU); c.stroke();
+        } else {
+          c.strokeStyle = 'rgba(200,210,240,.35)'; c.lineWidth = 1;
+          c.beginPath(); c.arc(x, y, 3.5, 0, TAU); c.stroke();
+        }
+      });
+    });
+  }
   if (state === 'intro' || state === 'playing' || state === 'clearing' || state === 'levelclear' || state === 'paused') {
     let tx, ty, tr;
     if (gamePart === 1) {
       [tx, ty] = P(featuredType);
+      tr = 12;
+    } else if (gamePart === 3) {
+      const p3 = evoInfo().chain.track[evoInfo().stage.ti];
+      tx = padL + p3[0] * iw; ty = padT + p3[1] * ih;
       tr = 12;
     } else {
       const L = LUM_CLASSES[curLum];
@@ -646,7 +704,6 @@ let spawnTimer = 0;
 let gamePart = 1, curLum = 0;
 let featuredType = 0, quota = 12, collected = 0;
 let effectQueue = [], slowUntil = 0, pierceUntil = 0;
-let targetSpawnLeft = 0;
 let currentType = 0, nextType = 0;
 let aimAngle = -Math.PI / 2;
 let cooldown = 0, muzzleFlash = 0;
@@ -656,16 +713,21 @@ let suckT = 0, sweepT = 0, sweepDone = 0;
 let time = 0, lastBeat = 0, dangerLevel = 0;
 let track = null;
 let quiz = null, lastQuiz = -1;
+let phaseIdx = 0, phaseCollected = 0;
+let fastForward = false;
 
 /* ================= 进度存档 ================= */
 const SAVE_KEY = 'stellar-zuma-save-v1';
-let progress = { spectral: [0, 0, 0, 0, 0, 0, 0], lum: [0, 0, 0], best: 0, maxLevel: 1 };
+let progress = { spectral: [0, 0, 0, 0, 0, 0, 0], lum: [0, 0, 0], evo: [[0, 0, 0, 0], [0, 0, 0]], best: 0, maxLevel: 1 };
 function loadProgress() {
   try {
     const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
     if (!d) return;
     if (Array.isArray(d.spectral)) progress.spectral = d.spectral.slice(0, 7).map(v => v ? 1 : 0);
     if (Array.isArray(d.lum)) progress.lum = d.lum.slice(0, 3).map(v => v ? 1 : 0);
+    if (Array.isArray(d.evo)) d.evo.forEach((arr, i) => {
+      if (Array.isArray(arr) && progress.evo[i]) progress.evo[i] = arr.map(v => v ? 1 : 0).slice(0, progress.evo[i].length);
+    });
     progress.best = d.best | 0;
     progress.maxLevel = Math.max(1, d.maxLevel | 0);
   } catch (e) { /* 存档损坏时忽略 */ }
@@ -679,15 +741,16 @@ function litCount() {
 
 function levelConf(n) {
   if (n <= 7) {
+    const k = Math.min(n, 5);
     return {
       part: 1,
       palette: LEVEL_PALETTES[n - 1],
       featured: n - 1,
       lum: -1,
-      quota: 10 + n,
-      speed: Math.min(50, 22 + n * 3.2),
-      rollback: Math.min(130, 78 + n * 5),
-      prefill: Math.min(22, 13 + n * 2),
+      quota: 11 + k,
+      speed: Math.min(50, 22 + k * 3.2),
+      rollback: Math.min(130, 78 + k * 5),
+      prefill: Math.min(22, 13 + k * 2),
       total: 9999,
     };
   }
@@ -698,20 +761,38 @@ function levelConf(n) {
       palette: [0, 1, 2, 3, 4, 5, 6],
       featured: -1,
       lum: k,
-      quota: 6 + k,
+      quota: 8,
       speed: 30 + k * 3,
       rollback: 130,
       prefill: 16,
       total: 9999,
     };
   }
-  const k = n - 11;
+  if (n <= 17) {
+    const idx = n - 11;
+    const chainIdx = idx < 4 ? 0 : 1;
+    const stageIdx = idx < 4 ? idx : idx - 4;
+    return {
+      part: 3,
+      palette: [0, 1, 2, 3, 4, 5, 6],
+      featured: -1,
+      lum: -1,
+      quota: 8,
+      speed: Math.min(38, 30 + idx * 2),
+      rollback: 100,
+      prefill: 18,
+      total: 9999,
+      chainIdx,
+      stageIdx,
+    };
+  }
+  const k = n - 18;
   return {
     part: 2,
     palette: [0, 1, 2, 3, 4, 5, 6],
     featured: -1,
     lum: k % 3,
-    quota: 11 + k,
+    quota: 8 + 4 * Math.floor(k / 3),
     speed: Math.min(64, 42 + k * 2),
     rollback: 130,
     prefill: 18,
@@ -730,11 +811,31 @@ function tailRunInChain() {
   }
   return r;
 }
+function evoInfo() {
+  const idx = level - 11;
+  const chainIdx = idx < 4 ? 0 : 1;
+  const stageIdx = idx < 4 ? idx : idx - 4;
+  const chain = EVO_CHAINS[chainIdx];
+  return { chain, chainIdx, stageIdx, stage: chain.stages[stageIdx] };
+}
 function targetColors() {
-  return gamePart === 1 ? [featuredType] : LUM_CLASSES[curLum].colors;
+  if (gamePart === 1) return [featuredType];
+  if (gamePart === 3) return [evoInfo().stage.type];
+  return LUM_CLASSES[curLum].colors;
+}
+function phaseColor() {
+  if (gamePart === 1) return featuredType;
+  if (gamePart === 3) return evoInfo().stage.type;
+  const colors = LUM_CLASSES[curLum].colors;
+  return colors[Math.min(phaseIdx, colors.length - 1)];
+}
+function countColor(c) {
+  return chain.filter(b => b.type === c).length;
 }
 function isTargetBall(b) {
-  return gamePart === 1 ? b.type === featuredType : b.special != null;
+  if (gamePart === 1) return b.type === featuredType;
+  if (gamePart === 3) return b.type === phaseColor();
+  return b.special != null && b.type === phaseColor();
 }
 function countTargets() {
   return chain.filter(isTargetBall).length;
@@ -751,19 +852,19 @@ function pickShotType() {
   return randOf(pool);
 }
 function spawnBall() {
-  const tColors = targetColors();
+  const pc = phaseColor();
   const tail = chain[chain.length - 1];
   const tailRun = tail ? tailRunInChain() : 0;
   let type, special = null;
-  const refill = targetSpawnLeft > 0 && countTargets() < 4 && !(tailRun >= 3 && tColors.includes(tail.type));
-  const lottery = !refill && targetSpawnLeft > 0 && tailRun < 3 && Math.random() < 0.30;
-  if (refill || lottery) {
-    type = randOf(tColors);
-    targetSpawnLeft--;
+  const count = countColor(pc);
+  const tailBlocked = tailRun >= 3 && tail.type === pc;
+  const p = count <= 0 ? 0.85 : count === 1 ? 0.65 : count === 2 ? 0.45 : count === 3 ? 0.25 : count === 4 ? 0.1 : 0.03;
+  if (!tailBlocked && Math.random() < p) {
+    type = pc;
     if (gamePart === 2) special = curLum;
   } else {
-    const pool = activeTypes.filter(x => !tColors.includes(x));
-    if (tailRun >= 3 && !tColors.includes(tail.type) && Math.random() < 0.3) type = tail.type;
+    const pool = activeTypes.filter(x => !targetColors().includes(x));
+    if (tailRun >= 3 && !targetColors().includes(tail.type) && Math.random() < 0.3) type = tail.type;
     else type = randOf(pool.length ? pool : activeTypes);
   }
   return { type, special };
@@ -779,7 +880,6 @@ function startLevel(n) {
   curLum = c.lum;
   featuredType = c.featured;
   quota = c.quota;
-  targetSpawnLeft = c.quota;
   collected = 0;
   chain = []; shots = []; particles = []; floaters = [];
   effectQueue = []; slowUntil = 0; pierceUntil = 0;
@@ -788,6 +888,8 @@ function startLevel(n) {
   sweepT = 0; sweepDone = 0; dangerLevel = 0;
   track = null;
   quiz = null;
+  phaseIdx = 0;
+  phaseCollected = 0;
   levelStartScore = score;
   currentType = pickShotType();
   nextType = pickShotType();
@@ -797,8 +899,11 @@ function startLevel(n) {
     remaining--;
   }
   showOverlay(introHTML());
-  if (gamePart === 1) renderStarCard('introIcon'); else renderLumCard('introIcon');
-  drawHR('hrIntro', featuredType, curLum, gamePart === 2);
+  if (gamePart === 1) renderStarCard('introIcon');
+  else if (gamePart === 2) renderLumCard('introIcon');
+  else renderTypeCard('introIcon', evoInfo().stage.type);
+  if (gamePart === 3) drawEvoHR('hrIntro', evoInfo().chainIdx, evoInfo().stageIdx);
+  else drawHR('hrIntro', featuredType, curLum, gamePart === 2);
   state = 'intro';
   updateHUD(true);
   drawProgressHR('hrMini', 480, 330);
@@ -856,11 +961,10 @@ function killBalls(list) {
   let cx = 0, cy = 0;
   for (const ball of removed) {
     const p = posAt(ball.dist);
-    if (gamePart === 2 && ball.special != null) {
+    if (isTargetBall(ball)) {
       collected++;
-      effectQueue.push({ lum: ball.special, type: ball.type, x: p.x, y: p.y });
-    } else if (gamePart === 1 && ball.type === featuredType) {
-      collected++;
+      phaseCollected++;
+      if (gamePart === 2 && ball.special != null) effectQueue.push({ lum: ball.special, type: ball.type, x: p.x, y: p.y });
     }
     cx += p.x; cy += p.y;
     burst(p.x, p.y, ball.type);
@@ -869,7 +973,16 @@ function killBalls(list) {
 }
 function checkQuota() {
   if (state !== 'playing') return;
-  if (targetSpawnLeft <= 0 && countTargets() <= 3) startSweep();
+  if (collected >= quota) { startSweep(); return; }
+  if (gamePart === 2 && phaseCollected >= 4 && countColor(phaseColor()) === 0) {
+    phaseCollected = 0;
+    const colors = LUM_CLASSES[curLum].colors;
+    if (phaseIdx < colors.length - 1) {
+      phaseIdx++;
+      comboFlash('下一类:' + TYPES[phaseColor()].name + '!', 2);
+      updateStarInfo();
+    }
+  }
 }
 function removeRun(a, b, cause) {
   const n = b - a + 1;
@@ -905,14 +1018,11 @@ function applyLumEffect(e) {
   comboFlash(L.effectName + '!', 3);
   ringFx(e.x, e.y, '#ffd84d');
   if (L.effect === 'supernova') {
-    let victims = chain.filter(b => {
+    const victims = chain.filter(b => {
       const p = posAt(b.dist);
       const dx = p.x - e.x, dy = p.y - e.y;
       return dx * dx + dy * dy < 115 * 115;
     });
-    if (targetSpawnLeft <= 0 && victims.some(isTargetBall) && countTargets() === victims.filter(isTargetBall).length) {
-      victims = victims.filter(b => !isTargetBall(b));
-    }
     if (victims.length) {
       const mult = comboBump();
       const res = killBalls(victims);
@@ -965,12 +1075,13 @@ function updateChain(dt) {
   bounds.push(start);
   const segCount = bounds.length;
   const eff = time < slowUntil ? 0.45 : 1;
+  const fwd = fastForward ? 2.5 : 1;
   for (let j = 0; j < segCount; j++) {
     const s = bounds[j];
     const e = (j + 1 < segCount) ? bounds[j + 1] - 1 : n - 1;
     let v;
-    if (segCount === 1) v = pushSpeed * eff;
-    else if (j === segCount - 1) v = pushSpeed * 2.6 * eff;
+    if (segCount === 1) v = pushSpeed * eff * fwd;
+    else if (j === segCount - 1) v = pushSpeed * 2.6 * eff * fwd;
     else v = -rollbackSpeed;
     chain[s].dist += v * dt;
     for (let k = s + 1; k <= e; k++) chain[k].dist = chain[k - 1].dist - D;
@@ -1004,7 +1115,6 @@ function updateShots(dt) {
     if (hitIdx >= 0) {
       const victim = chain[hitIdx];
       if (time < pierceUntil) {
-        if (isTargetBall(victim) && targetSpawnLeft <= 0 && countTargets() === 1) continue;
         const p = posAt(victim.dist);
         score += 15;
         floatText(p.x, p.y - 20, '+15', '#ffd84d', 14);
@@ -1027,7 +1137,7 @@ function spawnUpdate(dt) {
       const b = spawnBall();
       chain.push({ type: b.type, special: b.special, dist: 0 });
       remaining--;
-      spawnTimer = D / pushSpeed;
+      spawnTimer = D / (pushSpeed * (fastForward ? 2.5 : 1));
       checkQuota();
     }
   }
@@ -1119,25 +1229,90 @@ function startSweep() {
 }
 
 /* ================= 演化轨迹动画 ================= */
-function trackForClear() {
-  if (gamePart === 1) {
-    const h = STAR_INFO[featuredType].hr;
-    return [[h[0] + 0.10, Math.min(0.95, h[1] + 0.24)], [h[0] + 0.05, h[1] + 0.11], h.slice()];
-  }
-  const T = [
-    [[0.06, 0.16], [0.13, 0.07], [0.35, 0.05], [0.58, 0.045]],
-    [[0.56, 0.56], [0.61, 0.46], [0.66, 0.30], [0.66, 0.25]],
-    [[0.66, 0.25], [0.48, 0.28], [0.27, 0.42], [0.14, 0.62], [0.12, 0.86]],
-  ];
-  return T[curLum].map(p => p.slice());
+function renderTypeCard(id, type) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const c = cv.getContext('2d');
+  const s = cv.width;
+  c.clearRect(0, 0, s, s);
+  const g = c.createRadialGradient(s / 2, s / 2, s * 0.05, s / 2, s / 2, s * 0.52);
+  g.addColorStop(0, hexA(TYPES[type].glow, 0.45));
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g;
+  c.fillRect(0, 0, s, s);
+  c.drawImage(sprites[type], s * 0.13, s * 0.13, s * 0.74, s * 0.74);
+}
+function drawEvoHR(id, chainIdx, stageIdx) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const c = cv.getContext('2d');
+  const w = cv.width, h = cv.height;
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = 'rgba(8,10,26,.85)';
+  roundRect(c, 0, 0, w, h, 16); c.fill();
+  c.strokeStyle = 'rgba(140,160,255,.25)'; c.lineWidth = 2;
+  roundRect(c, 0, 0, w, h, 16); c.stroke();
+  const padL = HRP.l, padR = HRP.r, padT = HRP.t, padB = HRP.b;
+  const iw = w - padL - padR, ih = h - padT - padB;
+  c.strokeStyle = 'rgba(150,170,255,.4)'; c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(padL, padT); c.lineTo(padL, padT + ih); c.lineTo(padL + iw, padT + ih);
+  c.stroke();
+  c.fillStyle = '#93a2d8';
+  c.font = '19px ' + UI_FONT;
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText('表面温度', padL + iw / 2, h - 18);
+  c.save();
+  c.translate(26, padT + ih / 2); c.rotate(-Math.PI / 2);
+  c.fillText('光度', 0, 0);
+  c.restore();
+  c.strokeStyle = 'rgba(160,180,255,.22)'; c.lineWidth = 7; c.lineCap = 'round';
+  c.beginPath();
+  STAR_INFO.forEach((_, i) => {
+    const x = padL + STAR_INFO[i].hr[0] * iw, y = padT + STAR_INFO[i].hr[1] * ih;
+    if (i) c.lineTo(x, y); else c.moveTo(x, y);
+  });
+  c.stroke();
+  const chain = EVO_CHAINS[chainIdx];
+  const pts = chain.track.map(p => [padL + p[0] * iw, padT + p[1] * ih]);
+  c.strokeStyle = 'rgba(255,215,80,.5)';
+  c.lineWidth = 2.5;
+  c.setLineDash([7, 6]);
+  c.beginPath();
+  pts.forEach((p, i) => { if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); });
+  c.stroke();
+  c.setLineDash([]);
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  chain.stages.forEach((st, si) => {
+    const [x, y] = pts[st.ti];
+    if (si < stageIdx) {
+      c.fillStyle = '#ffd84d';
+      c.beginPath(); c.arc(x, y, 7, 0, TAU); c.fill();
+    } else if (si === stageIdx) {
+      c.fillStyle = 'rgba(255,215,80,.22)';
+      c.beginPath(); c.arc(x, y, 17, 0, TAU); c.fill();
+      c.fillStyle = TYPES[st.type].color;
+      c.beginPath(); c.arc(x, y, 8, 0, TAU); c.fill();
+      c.strokeStyle = '#ffd84d'; c.lineWidth = 2;
+      c.beginPath(); c.arc(x, y, 13, 0, TAU); c.stroke();
+    } else {
+      c.strokeStyle = 'rgba(200,210,240,.4)'; c.lineWidth = 1.5;
+      c.beginPath(); c.arc(x, y, 5, 0, TAU); c.stroke();
+    }
+    c.fillStyle = si <= stageIdx ? '#ffe9a8' : 'rgba(200,210,240,.55)';
+    c.font = 'bold 13px ' + UI_FONT;
+    c.fillText(st.name, x, y - 18);
+  });
 }
 function drawTrackFrame() {
   const cv = document.getElementById('hrClear');
   if (!cv) return;
-  drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
+  if (gamePart === 3) drawEvoHR('hrClear', evoInfo().chainIdx, evoInfo().stageIdx);
+  else drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
   const c = cv.getContext('2d');
   const w = cv.width, h = cv.height;
   const pts = track.pts.map(p => hrMap(w, h, p[0], p[1]));
+  if (pts.length < 2) return;
   c.strokeStyle = 'rgba(255,215,80,.4)';
   c.lineWidth = 2;
   c.setLineDash([6, 5]);
@@ -1221,15 +1396,28 @@ function update(dt) {
         state = 'levelclear';
         score += levelBonus();
         SFX.levelClear();
-        if (gamePart === 1) progress.spectral[featuredType] = 1; else progress.lum[curLum] = 1;
+        if (gamePart === 1) progress.spectral[featuredType] = 1;
+        else if (gamePart === 2) progress.lum[curLum] = 1;
+        else {
+          const es = evoInfo();
+          progress.evo[es.chainIdx][es.stageIdx] = 1;
+        }
         progress.best = Math.max(progress.best, score);
         progress.maxLevel = Math.max(progress.maxLevel, level + 1);
         saveProgress();
         quiz = pickQuestion();
         showOverlay(clearHTML());
-        if (gamePart === 1) renderStarCard('clearIcon'); else renderLumCard('clearIcon');
-        drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
-        track = { pts: trackForClear(), t: 0, dur: 2.6 };
+        if (gamePart === 1) renderStarCard('clearIcon');
+        else if (gamePart === 2) renderLumCard('clearIcon');
+        else renderTypeCard('clearIcon', evoInfo().stage.type);
+        if (gamePart === 3) drawEvoHR('hrClear', evoInfo().chainIdx, evoInfo().stageIdx);
+        else drawHR('hrClear', gamePart === 1 ? featuredType : -1, gamePart === 2 ? curLum : -1, gamePart === 2);
+        let tp = null;
+        if (gamePart === 3) {
+          tp = evoInfo().chain.track.slice(0, evoInfo().stage.ti + 1);
+          if (tp.length === 1) tp.unshift([tp[0][0] + 0.12, Math.min(0.95, tp[0][1] + 0.22)]);
+        }
+        track = gamePart === 3 ? { pts: tp, t: 0, dur: 2.8 } : null;
         drawProgressHR('hrMini', 480, 330);
       }
     } else sweepDone = 0.6;
@@ -1311,7 +1499,6 @@ function drawHole() {
   ctx.restore();
 }
 function drawChain() {
-  const protect = state === 'playing' && targetSpawnLeft <= 0 && countTargets() <= 3;
   for (let i = chain.length - 1; i >= 0; i--) {
     const b = chain[i];
     if (b.dist < -BALL_R) continue;
@@ -1331,20 +1518,6 @@ function drawChain() {
       ctx.strokeStyle = hexA(TYPES[b.type].glow, 0.45 + 0.3 * Math.sin(time * 4 + b.dist * 0.07));
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(p.x, p.y, (BALL_R + 10) * sz * pul2, 0, TAU); ctx.stroke();
-    }
-    if (protect && isTargetBall(b) && alpha > 0.5) {
-      const pul2 = 1 + 0.12 * Math.sin(time * 6);
-      ctx.strokeStyle = 'rgba(160,255,190,.85)';
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([6, 5]);
-      ctx.beginPath(); ctx.arc(p.x, p.y, (BALL_R + 10) * sz * pul2, 0, TAU); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#9dffb0';
-      ctx.font = 'bold 12px ' + UI_FONT;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 4;
-      ctx.fillText('保留样本', p.x, p.y + (BALL_R + 16) * sz);
-      ctx.shadowBlur = 0;
     }
     if (L && alpha > 0.5) {
       const pul = 1 + 0.09 * Math.sin(time * 5 + b.dist * 0.05);
@@ -1518,7 +1691,9 @@ function updateHUD(force) {
   elFill.style.width = (pct * 100).toFixed(1) + '%';
   const goal = gamePart === 1
     ? TYPES[featuredType].key + ' 型恒星'
-    : LUM_CLASSES[curLum].name;
+    : gamePart === 3
+      ? evoInfo().stage.name
+      : LUM_CLASSES[curLum].name;
   const lbl = (state === 'playing' || state === 'sucking' || state === 'intro' || state === 'clearing')
     ? '目标 ' + goal + ' · 已收 ' + Math.min(collected, goalN) + '/' + goalN + ' · 保留最后 1 颗'
     : '';
@@ -1527,11 +1702,21 @@ function updateHUD(force) {
 function updateStarInfo() {
   const el = document.getElementById('starInfo');
   if (!el) return;
+  if (gamePart === 3) {
+    const es = evoInfo();
+    const st = es.stage;
+    const T = TYPES[st.type];
+    el.innerHTML = `<div class="si-head"><span class="si-badge" style="background:${T.color};box-shadow:0 0 14px ${T.glow}">${T.key}</span>
+      <div><div class="si-name">${st.name}</div><div class="si-sub">${es.chain.name}(${es.stageIdx + 1}/${es.chain.stages.length})</div></div></div>
+      <p class="si-desc">${st.desc}</p>
+      <p class="si-example">演化链:${es.chain.stages.map(s => s.name).join(' → ')}</p>`;
+    return;
+  }
   if (gamePart === 1) {
     const T = TYPES[featuredType], S = STAR_INFO[featuredType];
-    const seq = TYPES.map((TT, i) => {
+    const seq = COLLECT_ORDER.map(i => {
       const cls = progress.spectral[i] ? 'si-done' : (i === featuredType ? 'si-cur' : 'si-future');
-      return `<span class="${cls}">${TT.key}</span>`;
+      return `<span class="${cls}">${TYPES[i].key}</span>`;
     }).join('<i>→</i>');
     el.innerHTML = `<div class="si-head"><span class="si-badge" style="background:${T.color};box-shadow:0 0 14px ${T.glow}">${T.key}</span>
       <div><div class="si-name">${T.name}</div><div class="si-sub">${S.temp}</div></div></div>
@@ -1540,9 +1725,8 @@ function updateStarInfo() {
       <p class="si-example">代表恒星:${S.example}</p>`;
   } else {
     const L = LUM_CLASSES[curLum];
-    const colDesc = L.colors.map(cc => TYPES[cc].key).join('/');
     el.innerHTML = `<div class="si-head"><span class="si-badge crown">${L.yerkes}</span>
-      <div><div class="si-name">${L.name}</div><div class="si-sub">光度类 ${L.yerkes} · 冠环 ${colDesc} 型球</div></div></div>
+      <div><div class="si-name">${L.name}</div><div class="si-sub">光度类 ${L.yerkes} · 当前收集 ${TYPES[phaseColor()].key} 型</div></div></div>
       <p class="si-desc">${L.desc}</p>
       <p class="si-example">代表恒星:${L.example}<br>${L.radius}</p>
       <p class="si-skill">技能 ${L.effectName}:${L.effectDesc}</p>`;
@@ -1574,15 +1758,40 @@ function titleHTML() {
     : `<button class="primary" data-action="start">开始游戏</button>`;
   return `<div class="card">
     <h1>星链祖玛</h1><p class="sub">STELLAR ZUMA</p>
-    <p class="desc">第一部分：按 <b>O → B → A → F → G → K → M</b> 顺序七关收集七大光谱型！<br>第二部分：三大光度类别——<b>超巨星 / 巨星 / 矮星</b>。<br>发射器中不会出现目标星;目标星连成 <b>4 颗</b>即自动收集、不足 4 颗自动补充,收集完毕即过关!</p>
+    <p class="desc">第一部分：按 <b>O → B → A → F → G → K → M</b> 顺序七关收集七大光谱型（主序星）！<br>第二部分：三大光度类别——<b>超巨星(Ia) / 巨星(III) / 矮星(VII)</b>。超巨星虽有蓝、红之分,但与主序星是不同类别!<br>第三部分：恒星演化——<b>太阳的演化</b>与<b>大质量恒星的演化</b>两条链,在赫罗图上见证演化轨迹!<br>同色目标星连成 <b>4 颗</b>即自动收集,目标星随机分布,<b>先收完一类再换下一类</b>,收满目标数即过关!</p>
     <div class="legend">${legend}</div>
     <canvas id="hrTitle" width="460" height="250" class="${unlocked ? 'selectable' : ''}"></canvas>
     <p id="hrHint" class="tip">${hint}</p>
     ${saveInfo}
-    <p class="controls">鼠标瞄准 · 点击发射 · <b>空格 / 右键</b> 换球 · <b>P</b> 暂停 · <b>M</b> 音效</p>
+    <p class="controls">鼠标瞄准 · 点击发射 · <b>空格 / 右键</b> 换球 · <b>F / 加速按钮</b> 加速星链 · <b>P</b> 暂停 · <b>M</b> 音效</p>
   </div>`;
 }
+function partMeta() {
+  if (gamePart === 1) return { title: '第一部分', topic: '恒星的光谱型', desc: '学习 O · B · A · F · G · K · M 七大光谱分类——温度与颜色的对应关系' };
+  if (gamePart === 2) return { title: '第二部分', topic: '恒星的光度型', desc: '学习 Yerkes 光度分类:超巨星 Ia · 巨星 III · 矮星 VII' };
+  return { title: '第三部分', topic: '恒星的演化', desc: '沿赫罗图上的演化轨迹,见证恒星的一生' };
+}
 function introHTML() {
+  const pm = partMeta();
+  if (gamePart === 3) {
+    const es = evoInfo();
+    const st = es.stage;
+    return `<div class="card intro">
+      <div class="intro-head">
+        <canvas id="introIcon" width="96" height="96"></canvas>
+        <div class="intro-title">
+          <h1 class="part-title">${pm.title} · ${pm.topic}</h1>
+          <p class="part-desc">${pm.desc}</p>
+          <h2 class="level-title">第 ${level} 关 · 演化阶段:${st.name}</h2>
+          <p class="sub">${es.chain.name}(${es.stageIdx + 1}/${es.chain.stages.length}) · ${TYPES[st.type].key} 型</p>
+        </div>
+      </div>
+      <p class="desc">本关目的:${st.desc}</p>
+      <p class="tip">收集满 <b>${quota}</b> 颗 ${TYPES[st.type].key} 型星即可进入下一阶段;同色 4 颗相连自动收集,目标星随机分布并自动维持在 4 颗左右<br>${es.chain.desc}</p>
+      <canvas id="hrIntro" width="640" height="300"></canvas>
+      <button class="primary" data-action="go">出发</button>
+    </div>`;
+  }
   if (gamePart === 2) {
     const L = LUM_CLASSES[curLum];
     const ladder = [['Ia', '超巨星'], ['III', '巨星'], ['V', '主序矮星'], ['VII', '白矮星']]
@@ -1591,12 +1800,14 @@ function introHTML() {
       <div class="intro-head">
         <canvas id="introIcon" width="96" height="96"></canvas>
         <div class="intro-title">
-          <h1>第 ${level} 关 · 收集 ${L.name}</h1>
-          <p class="sub">第二部分 · 光度类 ${L.yerkes} · 恒星演化 ${L.key}</p>
+          <h1 class="part-title">${pm.title} · ${pm.topic}</h1>
+          <p class="part-desc">${pm.desc}</p>
+          <h2 class="level-title">第 ${level} 关 · 收集${L.name}</h2>
+          <p class="sub">光度类 ${L.yerkes} · 当前:${TYPES[phaseColor()].key} 型冠环</p>
         </div>
       </div>
-      <p class="desc">${L.desc}</p>
-      <p class="tip">发射的星球只会插入星链,冠环星共出现 ${quota} 颗,星链中不足 <b>4 颗</b>时尾部新生恒星自动补齐(新生星不会直接连成 4 连)<br>冠环星连成 <b>4 颗</b>即自动湮灭并整批计入收集——通过消除普通星球引发链段合并,把分散的冠环星凑到一起!<br>技能 <b>${L.effectName}</b>：${L.effectDesc} · 代表恒星：${L.example} · ${L.radius}</p>
+      <p class="desc">本关目的:认识${L.name}的物理特性与在赫罗图上的位置</p>
+      <p class="tip">发射的星球只会插入星链;收集满 <b>${quota}</b> 颗冠环星即可过关,当前一类的冠环星随机分布并自动维持在 4 颗左右(新生星不会直接连成 4 连)<br><b>先收集完一类(4 颗同色相连消除),再收集下一类</b>——两类不会同时出现<br>同色 4 颗相连即自动湮灭并整批计入收集——通过消除普通星球引发链段合并,把同色冠环星凑到一起!<br>技能 <b>${L.effectName}</b>：${L.effectDesc} · 代表恒星：${L.example} · ${L.radius}</p>
       <p class="tip">光度分类:${ladder}<br>恒星代号 = 光谱型 + 光度类:<b>B8Ia</b> = B 型 + Ia 超巨星,<b>G2V</b> = G 型 + V 主序矮星(太阳)<br>读图:金色虚线为等半径线,同一条线上半径相同——巨星与超巨星在右上,矮星贴着左下</p>
       ${curLum === 2 ? `<p class="tip">矮星家族:红矮星(V)是主序上的 M 型星,靠氢燃烧发光;白矮星(VII)是恒星遗骸,靠余热发光;棕矮星质量太小没点燃氢,不算真恒星。</p>` : ''}
       <canvas id="hrIntro" width="640" height="300"></canvas>
@@ -1609,17 +1820,36 @@ function introHTML() {
     <div class="intro-head">
       <canvas id="introIcon" width="96" height="96"></canvas>
       <div class="intro-title">
-        <h1>第 ${level} 关 · 收集 ${T.key} 型恒星</h1>
-        <p class="sub">${T.name} · ${S.temp}</p>
+        <h1 class="part-title">${pm.title} · ${pm.topic}</h1>
+        <p class="part-desc">${pm.desc}</p>
+        <h2 class="level-title">第 ${level} 关 · 收集 ${T.key} 型恒星</h2>
+        <p class="sub">本关认识:${T.name} · ${S.temp}</p>
       </div>
     </div>
     <p class="desc">${S.desc}</p>
-    <p class="tip">发射的星球只会插入星链,目标星共出现 ${quota} 颗,星链中不足 <b>4 颗</b>时尾部新生恒星自动补齐(新生星不会直接连成 4 连)<br>目标星连成 <b>4 颗</b>即自动湮灭并整批计入收集——通过消除普通星球引发链段合并,把分散的目标星凑到一起!<br>收集顺序:O → B → A → F → G → K → M · 代表恒星:${S.example}</p>
+    <p class="tip">发射的星球只会插入星链;收集满 <b>${quota}</b> 颗 ${T.key} 型星即可过关,星链中的目标星随机分布并自动维持在 4 颗左右(新生星不会直接连成 4 连)<br>同色 4 颗相连即自动湮灭并整批计入收集——通过消除普通星球引发链段合并,把目标星凑到一起!<br>收集顺序:O → B → A → F → G → K → M · 代表恒星:${S.example}</p>
     <canvas id="hrIntro" width="640" height="300"></canvas>
     <button class="primary" data-action="go">出发</button>
   </div>`;
 }
 function clearHTML() {
+  if (gamePart === 3) {
+    const es = evoInfo();
+    const st = es.stage;
+    return `<div class="card intro">
+      <div class="intro-head">
+        <canvas id="clearIcon" width="96" height="96"></canvas>
+        <div class="intro-title">
+          <h1 class="good">${st.name} · 演化完成!</h1>
+          <p class="sub">第三部分 · ${es.chain.name}(${es.stageIdx + 1}/${es.chain.stages.length})</p>
+        </div>
+      </div>
+      <p class="desc">关卡奖励 <b>+${levelBonus()}</b> · 当前得分 <b>${score.toLocaleString('zh-CN')}</b> · 最大连击 <b>×${Math.max(1, maxCombo)}</b></p>
+      <canvas id="hrClear" width="640" height="300"></canvas>
+      ${quizHTML()}
+      <button id="clearNext" class="primary hidden" data-action="next">${level < 17 ? '演化继续 · 下一阶段' : '进入无尽挑战'}</button>
+    </div>`;
+  }
   if (gamePart === 2) {
     const L = LUM_CLASSES[curLum];
     return `<div class="card intro">
@@ -1633,7 +1863,7 @@ function clearHTML() {
       <p class="desc">关卡奖励 <b>+${levelBonus()}</b> · 当前得分 <b>${score.toLocaleString('zh-CN')}</b> · 最大连击 <b>×${Math.max(1, maxCombo)}</b></p>
       <canvas id="hrClear" width="640" height="300"></canvas>
       ${quizHTML()}
-      <button id="clearNext" class="primary hidden" data-action="next">${level < 10 ? '收集下一类恒星' : '进入无尽挑战'}</button>
+      <button id="clearNext" class="primary hidden" data-action="next">${level < 10 ? '收集下一类恒星' : '进入第三部分 · 恒星演化'}</button>
     </div>`;
   }
   const S = STAR_INFO[featuredType];
@@ -1768,6 +1998,17 @@ overlay.addEventListener('click', e => {
   else if (act === 'resume') { hideOverlay(); state = 'playing'; }
 });
 
+/* ================= 加速星链 ================= */
+const ffBtn = document.getElementById('ffBtn');
+function setFast(on) {
+  fastForward = on;
+  if (ffBtn) ffBtn.classList.toggle('on', on);
+}
+if (ffBtn) {
+  ffBtn.addEventListener('pointerdown', e => { e.preventDefault(); setFast(true); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => ffBtn.addEventListener(ev, () => setFast(false)));
+}
+
 /* ================= 输入 ================= */
 canvas.addEventListener('pointermove', e => {
   const r = canvas.getBoundingClientRect();
@@ -1797,10 +2038,15 @@ window.addEventListener('keydown', e => {
     else if (state === 'paused') { hideOverlay(); state = 'playing'; }
   } else if (e.key === 'm' || e.key === 'M') {
     muted = !muted;
+  } else if (e.key === 'f' || e.key === 'F') {
+    setFast(true);
   } else if (e.key === 'Enter') {
     const b = overlay.querySelector('button.primary');
     if (b && !overlay.classList.contains('hidden') && !b.classList.contains('hidden')) b.click();
   }
+});
+window.addEventListener('keyup', e => {
+  if (e.key === 'f' || e.key === 'F') setFast(false);
 });
 window.addEventListener('blur', () => {
   if (state === 'playing') { state = 'paused'; showOverlay(pauseHTML()); }
@@ -1850,7 +2096,8 @@ if (typeof window !== 'undefined') {
     gamePart: () => gamePart,
     progress: () => progress,
     chainRef: () => chain,
-    setBudget: v => { targetSpawnLeft = v; },
+    setBudget: v => { quota = v; },
+    addCollected: n => { collected += n; checkQuota(); },
     clearHTML: () => clearHTML(),
     startLevelAt: n => { level = n; startLevel(n); },
     killSpecial: () => {

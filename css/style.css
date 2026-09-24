@@ -376,6 +376,27 @@ html, body {
   letter-spacing: .02em;
 }
 
+.intro-title .part-title {
+  font-size: 36px;
+  color: #ffe9a8;
+  text-shadow: 0 0 22px rgba(255, 210, 90, .45);
+  letter-spacing: .04em;
+}
+
+.intro-title .part-desc {
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8fa0d8;
+  line-height: 1.5;
+}
+
+.intro-title .level-title {
+  margin-top: 12px;
+  font-size: 21px;
+  color: #cdd7ff;
+  font-weight: bold;
+}
+
 .intro-title .sub {
   margin-top: 4px;
   font-size: 14px;
@@ -452,3 +473,32 @@ html, body {
 #hrTitle.selectable { cursor: pointer; }
 
 #hrHint.warn { color: #ff8d80; }
+
+/* ---------- 加速星链 ---------- */
+.ff-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: inherit;
+  letter-spacing: .08em;
+  color: #cdd7ff;
+  background: rgba(10, 14, 34, .6);
+  border: 1px solid rgba(140, 160, 255, .35);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background .15s ease, transform .15s ease, border-color .15s ease;
+}
+
+.ff-btn.on {
+  background: rgba(255, 216, 77, .22);
+  border-color: rgba(255, 216, 77, .85);
+  color: #ffd84d;
+  transform: scale(1.06);
+}
