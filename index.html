@@ -9,11 +9,14 @@
 <body>
 <div id="wrap">
   <div id="stage">
-    <canvas id="game" width="1280" height="800"></canvas>
-    <div id="hud">
+    <header id="hud">
+      <div class="game-brand">
+        <span class="brand-star" aria-hidden="true">✦</span>
+        <div><h1>星链祖玛</h1><p>Stellar Zuma · 恒星物理互动课堂</p></div>
+      </div>
       <div class="panel hud-left">
         <div class="stat">
-          <span class="lbl">SCORE · 得分</span>
+          <span class="lbl">得分</span>
           <span id="score" class="val">0</span>
         </div>
         <div id="level" class="pill">第 1 关</div>
@@ -21,18 +24,73 @@
       <div class="panel hud-right">
         <div class="lbl">收集目标</div>
         <div class="bar"><div id="prog-fill"></div></div>
-        <div id="prog-label" class="mini"></div>
+        <div id="prog-label" class="mini" aria-live="polite"></div>
       </div>
-      <div class="panel hud-hr">
-        <canvas id="hrMini" width="480" height="330"></canvas>
+    </header>
+    <aside class="learning-panel" aria-label="赫罗图与恒星知识">
+      <div class="learning-heading">
+        <h2>赫罗图</h2>
+        <p>用温度与光度，认识每一类恒星。</p>
       </div>
-      <div id="starInfo" class="panel star-info"></div>
-      <div id="combo"></div>
-    </div>
+      <div class="hud-hr">
+        <canvas id="hrMini" width="480" height="330" role="img" aria-label="赫罗图示意：横轴为表面温度，左热右冷；纵轴为光度，下暗上亮。主序带从左上到右下，白矮星在左下。">赫罗图：横轴左热右冷，纵轴下暗上亮。</canvas>
+      </div>
+      <p class="hr-guide">颜色提示温度；光度还与恒星半径有关。</p>
+      <button id="hrOpenBtn" type="button" class="hr-open-btn">放大赫罗图 · 读图练习 <kbd>H</kbd></button>
+      <div id="starInfo" class="star-info"></div>
+    </aside>
+    <main class="play-area" aria-label="祖玛游戏区">
+      <div class="board-frame">
+        <canvas id="game" width="800" height="800" aria-label="鼠标瞄准并点击发射，空格换球，P 暂停"></canvas>
+        <div id="combo" aria-live="polite"></div>
+      </div>
+      <div class="play-toolbar">
+        <p class="play-hint">瞄准星链，点击发射</p>
+        <div class="game-controls">
+          <button id="swapBtn" type="button">换球 <kbd>空格</kbd></button>
+          <button id="pauseBtn" type="button">暂停 <kbd>P</kbd></button>
+          <button id="ffBtn" type="button" class="ff-btn">按住加速 <kbd>F</kbd></button>
+        </div>
+      </div>
+    </main>
     <div id="overlay" class="hidden"></div>
-    <button id="ffBtn" class="ff-btn">加速星链 »</button>
+    <div id="hrPractice" class="hidden" role="dialog" aria-modal="true" aria-labelledby="hrPracticeTitle">
+      <div class="hr-dialog">
+        <header class="hr-head">
+          <div class="hr-head-txt">
+            <h2 id="hrPracticeTitle">赫罗图 · 读图练习</h2>
+            <p class="hr-sub"><span id="hrPracticeStats">本次答对 0 / 已答 0</span> · 甲 / 乙 为练习示意星</p>
+          </div>
+          <button id="hrPracticeClose" type="button" class="hr-close">关闭 <kbd>Esc</kbd></button>
+        </header>
+        <div class="hr-body">
+          <figure class="hr-chart-wrap">
+            <canvas id="hrPracticeCanvas" role="img" aria-label="练习用赫罗图"></canvas>
+            <figcaption id="hrChartSummary" class="hr-summary"></figcaption>
+          </figure>
+          <section class="hr-panel" aria-label="读图问题">
+            <div class="hr-kinds" role="group" aria-label="题型">
+              <button type="button" class="hr-kind" data-hr-kind="temperature" aria-pressed="true">温度比较</button>
+              <button type="button" class="hr-kind" data-hr-kind="luminosity" aria-pressed="false">光度比较</button>
+              <button type="button" class="hr-kind" data-hr-kind="radius" aria-pressed="false">半径推理</button>
+            </div>
+            <p id="hrPrompt" class="hr-prompt"></p>
+            <div id="hrChoices" class="hr-choices"></div>
+            <p id="hrFeedback" class="hr-feedback" aria-live="polite"></p>
+            <div class="hr-actions">
+              <button id="hrPracticeNext" type="button" class="hr-next">换一组 <kbd>R</kbd></button>
+            </div>
+            <p class="hr-note">练习不影响游戏得分、课程点亮与关卡解锁。</p>
+          </section>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+<script src="js/hr-model.js"></script>
+<script src="js/hr-diagram.js"></script>
+<script src="js/hr-learning.js"></script>
+<script src="js/hr-practice.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
